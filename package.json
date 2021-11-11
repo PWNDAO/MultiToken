@@ -1,6 +1,6 @@
 {
   "name": "@pwnfinance/multitoken",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Solidity library unifying ERC20, ERC721 &amp; ERC1155 transfers by wrapping them into MultiToken Asset struct.",
   "scripts": {
     "test": "npx hardhat test"
