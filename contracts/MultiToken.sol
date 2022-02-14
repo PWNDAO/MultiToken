@@ -54,6 +54,9 @@ library MultiToken {
                 _asset.amount = 1;
             }
             token.safeTransferFrom(address(this), _dest, _asset.id, _asset.amount, "");
+
+        } else {
+            revert("MultiToken: Unsupported category");
         }
     }
 
@@ -79,6 +82,9 @@ library MultiToken {
                 _asset.amount = 1;
             }
             token.safeTransferFrom(_source, _dest, _asset.id, _asset.amount, "");
+
+        } else {
+            revert("MultiToken: Unsupported category");
         }
     }
 
@@ -104,6 +110,9 @@ library MultiToken {
         } else if (_asset.category == Category.ERC1155) {
             IERC1155 token = IERC1155(_asset.assetAddress);
             return token.balanceOf(_target, _asset.id);
+
+        } else {
+            revert("MultiToken: Unsupported category");
         }
     }
 
@@ -125,6 +134,9 @@ library MultiToken {
         } else if (_asset.category == Category.ERC1155) {
             IERC1155 token = IERC1155(_asset.assetAddress);
             token.setApprovalForAll(_target, true);
+
+        } else {
+            revert("MultiToken: Unsupported category");
         }
     }
 }
