@@ -11,7 +11,7 @@ library MultiToken {
 
     /**
      * @title Category
-     * @dev enum represention Asset category
+     * @dev enum representation Asset category
      */
     enum Category {
         ERC20,
@@ -36,7 +36,7 @@ library MultiToken {
     /**
      * transferAsset
      * @dev wrapping function for transfer calls on various token interfaces
-     * @param _asset Struck defining all necessary context of a token
+     * @param _asset Struct defining all necessary context of a token
      * @param _dest Destination address
      */
     function transferAsset(Asset memory _asset, address _dest) internal {
@@ -63,7 +63,7 @@ library MultiToken {
     /**
      * transferAssetFrom
      * @dev wrapping function for transfer From calls on various token interfaces
-     * @param _asset Struck defining all necessary context of a token
+     * @param _asset Struct defining all necessary context of a token
      * @param _source Account/address that provided the allowance
      * @param _dest Destination address
      */
@@ -91,7 +91,7 @@ library MultiToken {
     /**
      * balanceOf
      * @dev wrapping function for checking balances on various token interfaces
-     * @param _asset Struck defining all necessary context of a token
+     * @param _asset Struct defining all necessary context of a token
      * @param _target Target address to be checked
      */
     function balanceOf(Asset memory _asset, address _target) internal view returns (uint256) {
@@ -119,7 +119,7 @@ library MultiToken {
     /**
      * approveAsset
      * @dev wrapping function for approve calls on various token interfaces
-     * @param _asset Struck defining all necessary context of a token
+     * @param _asset Struct defining all necessary context of a token
      * @param _target Target address to be checked
      */
     function approveAsset(Asset memory _asset, address _target) internal {
