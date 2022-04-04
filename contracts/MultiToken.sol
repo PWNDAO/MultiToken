@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
-// @dev importing contract interfaces - for supported contracts; nothing more than the interface is needed!
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
@@ -46,7 +44,7 @@ library MultiToken {
 
         } else if (_asset.category == Category.ERC721) {
             IERC721 token = IERC721(_asset.assetAddress);
-            token.transferFrom(address(this), _dest, _asset.id);
+            token.safeTransferFrom(address(this), _dest, _asset.id);
 
         } else if (_asset.category == Category.ERC1155) {
             IERC1155 token = IERC1155(_asset.assetAddress);
@@ -74,7 +72,7 @@ library MultiToken {
 
         } else if (_asset.category == Category.ERC721) {
             IERC721 token = IERC721(_asset.assetAddress);
-            token.transferFrom(_source, _dest, _asset.id);
+            token.safeTransferFrom(_source, _dest, _asset.id);
 
         } else if (_asset.category == Category.ERC1155) {
             IERC1155 token = IERC1155(_asset.assetAddress);
