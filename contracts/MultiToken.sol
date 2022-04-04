@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
-// @dev importing contract interfaces - for supported contracts; nothing more than the interface is needed!
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
@@ -46,7 +44,7 @@ library MultiToken {
 
         } else if (_asset.category == Category.ERC721) {
             IERC721 token = IERC721(_asset.assetAddress);
-            token.transferFrom(address(this), _dest, _asset.id);
+            token.safeTransferFrom(address(this), _dest, _asset.id);
 
         } else if (_asset.category == Category.ERC1155) {
             IERC1155 token = IERC1155(_asset.assetAddress);
@@ -74,7 +72,7 @@ library MultiToken {
 
         } else if (_asset.category == Category.ERC721) {
             IERC721 token = IERC721(_asset.assetAddress);
-            token.transferFrom(_source, _dest, _asset.id);
+            token.safeTransferFrom(_source, _dest, _asset.id);
 
         } else if (_asset.category == Category.ERC1155) {
             IERC1155 token = IERC1155(_asset.assetAddress);
@@ -138,5 +136,42 @@ library MultiToken {
         } else {
             revert("MultiToken: Unsupported category");
         }
+    }
+
+    /**
+     * isValid
+     * @dev checks that assets amount and id is valid in stated category
+     * @dev this function don't check that stated category is indeed the category of a contract on a stated address
+     * @param _asset Asset that is examined
+     * @return True if assets amount and id is valid in stated category
+     */
+    function isValid(Asset memory _asset) internal pure returns (bool) {
+        // ERC20 token has to have id set to 0
+        if (_asset.category == Category.ERC20 && _asset.id != 0)
+            return false;
+
+        // ERC721 token has to have amount set to 1
+        if (_asset.category == Category.ERC721 && _asset.amount != 1)
+            return false;
+
+        // Any categories have to have non-zero amount
+        if (_asset.amount == 0)
+            return false;
+
+        return true;
+    }
+
+    /**
+     * isSameAs
+     * @dev compare two assets, ignoring their amounts
+     * @param _asset First asset to examine
+     * @param _otherAsset Second asset to examine
+     * @return True if both structs represents the same asset
+     */
+    function isSameAs(Asset memory _asset, Asset memory _otherAsset) internal pure returns (bool) {
+        return
+            _asset.assetAddress == _otherAsset.assetAddress &&
+            _asset.category == _otherAsset.category &&
+            _asset.id == _otherAsset.id;
     }
 }

@@ -47,8 +47,8 @@ describe("MultiToken library", function() {
 
 			await multiTokenAdapter.transferAsset(fakeToken.address, CATEGORY.ERC721, 1, assetId, addr1.address);
 
-			expect(fakeToken.transferFrom).to.have.been.calledOnce;
-			expect(fakeToken.transferFrom).to.have.been.calledWith(multiTokenAdapter.address, addr1.address, assetId);
+			expect(fakeToken["safeTransferFrom(address,address,uint256)"]).to.have.been.calledOnce;
+			expect(fakeToken["safeTransferFrom(address,address,uint256)"]).to.have.been.calledWith(multiTokenAdapter.address, addr1.address, assetId);
 		});
 
 		it("Should call safe transfer from current address on ERC1155 token", async function() {
@@ -106,8 +106,8 @@ describe("MultiToken library", function() {
 
 			await multiTokenAdapter.transferAssetFrom(fakeToken.address, CATEGORY.ERC721, 1, assetId, addr1.address, addr2.address);
 
-			expect(fakeToken.transferFrom).to.have.been.calledOnce;
-			expect(fakeToken.transferFrom).to.have.been.calledWith(addr1.address, addr2.address, assetId);
+			expect(fakeToken["safeTransferFrom(address,address,uint256)"]).to.have.been.calledOnce;
+			expect(fakeToken["safeTransferFrom(address,address,uint256)"]).to.have.been.calledWith(addr1.address, addr2.address, assetId);
 		});
 
 		it("Should call safe transfer from on ERC1155 token", async function() {
@@ -254,6 +254,100 @@ describe("MultiToken library", function() {
 			}
 
 			expect(failed).to.equal(true);
+		});
+
+	});
+
+
+	describe("IsValid", function() {
+
+		it("Should return false when ERC20 token has non-zero id", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 657, 1)
+			).to.equal(false);
+		});
+
+		it("Should return false when ERC20 token has zero amount", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 0, 0)
+			).to.equal(false);
+		});
+
+		it("Should return false when ERC721 token has amount lower than 1", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 0, 5)
+			).to.equal(false);
+		});
+
+		it("Should return false when ERC721 token has amount bigger than 1", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 2, 5)
+			).to.equal(false);
+		});
+
+		it("Should return false when ERC1155 token has zero amount", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC1155, 0, 5)
+			).to.equal(false);
+		});
+
+		it("Should return true when ERC20 token is valid", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 3232, 0)
+			).to.equal(true);
+		});
+
+		it("Should return true when ERC721 token is valid", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 1, 3232)
+			).to.equal(true);
+		});
+
+		it("Should return true when ERC1155 token is valid", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC1155, 3232, 332)
+			).to.equal(true);
+		});
+
+	});
+
+
+	describe("IsSameAs", function() {
+
+		it("Should return false when assets have different addresses", async function() {
+			expect(
+				await multiTokenAdapter.isSameAs(
+					addr1.address, CATEGORY.ERC1155, 3232, 332,
+					addr2.address, CATEGORY.ERC1155, 3232, 332
+				)
+			).to.equal(false);
+		});
+
+		it("Should return false when assets have different categories", async function() {
+			expect(
+				await multiTokenAdapter.isSameAs(
+					addr1.address, CATEGORY.ERC721, 3232, 332,
+					addr1.address, CATEGORY.ERC1155, 3232, 332
+				)
+			).to.equal(false);
+		});
+
+		it("Should return false when assets have different ids", async function() {
+			expect(
+				await multiTokenAdapter.isSameAs(
+					addr1.address, CATEGORY.ERC1155, 3232, 332,
+					addr1.address, CATEGORY.ERC1155, 3232, 1
+				)
+			).to.equal(false);
+		});
+
+		it("Should return true when assets have different amounts", async function() {
+			expect(
+				await multiTokenAdapter.isSameAs(
+					addr1.address, CATEGORY.ERC1155, 3232, 332,
+					addr1.address, CATEGORY.ERC1155, 1, 332
+				)
+			).to.equal(true);
 		});
 
 	});
