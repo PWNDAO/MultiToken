@@ -258,4 +258,57 @@ describe("MultiToken library", function() {
 
 	});
 
+
+	describe("IsValid", function() {
+
+		it("Should return false when ERC20 token has non-zero id", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 657, 1)
+			).to.equal(false);
+		});
+
+		it("Should return false when ERC20 token has zero amount", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 0, 0)
+			).to.equal(false);
+		});
+
+		it("Should return false when ERC721 token has amount lower than 1", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 0, 5)
+			).to.equal(false);
+		});
+
+		it("Should return false when ERC721 token has amount bigger than 1", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 2, 5)
+			).to.equal(false);
+		});
+
+		it("Should return false when ERC1155 token has zero amount", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC1155, 0, 5)
+			).to.equal(false);
+		});
+
+		it("Should return true when ERC20 token is valid", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 3232, 0)
+			).to.equal(true);
+		});
+
+		it("Should return true when ERC721 token is valid", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 1, 3232)
+			).to.equal(true);
+		});
+
+		it("Should return true when ERC1155 token is valid", async function() {
+			expect(
+				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC1155, 3232, 332)
+			).to.equal(true);
+		});
+
+	});
+
 });

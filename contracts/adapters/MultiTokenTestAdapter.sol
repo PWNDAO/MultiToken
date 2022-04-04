@@ -24,4 +24,8 @@ contract MultiTokenTestAdapter {
 		MultiToken.Asset(_assetAddress, _category, _amount, _id).approveAsset(_target);
 	}
 
+	function isValid(address _assetAddress, MultiToken.Category _category, uint256 _amount, uint256 _id) external pure returns (bool) {
+		return MultiToken.Asset(_assetAddress, _category, _amount, _id).isValid();
+	}
+
 }

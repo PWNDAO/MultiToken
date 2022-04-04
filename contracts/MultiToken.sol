@@ -137,4 +137,27 @@ library MultiToken {
             revert("MultiToken: Unsupported category");
         }
     }
+
+    /**
+     * isValid
+     * @dev checks that assets amount and id is valid in stated category
+     * @dev this function don't check that stated category is indeed the category of a contract on a stated address
+     * @param _asset Asset that is examined
+     * @return True if assets amount and id is valid in stated category
+     */
+    function isValid(Asset memory _asset) internal pure returns (bool) {
+        // ERC20 token has to have id set to 0
+        if (_asset.category == Category.ERC20 && _asset.id != 0)
+            return false;
+
+        // ERC721 token has to have amount set to 1
+        if (_asset.category == Category.ERC721 && _asset.amount != 1)
+            return false;
+
+        // Any categories have to have non-zero amount
+        if (_asset.amount == 0)
+            return false;
+
+        return true;
+    }
 }
