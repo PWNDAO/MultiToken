@@ -311,4 +311,45 @@ describe("MultiToken library", function() {
 
 	});
 
+
+	describe("IsSameAs", function() {
+
+		it("Should return false when assets have different addresses", async function() {
+			expect(
+				await multiTokenAdapter.isSameAs(
+					addr1.address, CATEGORY.ERC1155, 3232, 332,
+					addr2.address, CATEGORY.ERC1155, 3232, 332
+				)
+			).to.equal(false);
+		});
+
+		it("Should return false when assets have different categories", async function() {
+			expect(
+				await multiTokenAdapter.isSameAs(
+					addr1.address, CATEGORY.ERC721, 3232, 332,
+					addr1.address, CATEGORY.ERC1155, 3232, 332
+				)
+			).to.equal(false);
+		});
+
+		it("Should return false when assets have different ids", async function() {
+			expect(
+				await multiTokenAdapter.isSameAs(
+					addr1.address, CATEGORY.ERC1155, 3232, 332,
+					addr1.address, CATEGORY.ERC1155, 3232, 1
+				)
+			).to.equal(false);
+		});
+
+		it("Should return true when assets have different amounts", async function() {
+			expect(
+				await multiTokenAdapter.isSameAs(
+					addr1.address, CATEGORY.ERC1155, 3232, 332,
+					addr1.address, CATEGORY.ERC1155, 1, 332
+				)
+			).to.equal(true);
+		});
+
+	});
+
 });

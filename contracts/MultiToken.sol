@@ -160,4 +160,18 @@ library MultiToken {
 
         return true;
     }
+
+    /**
+     * isSameAs
+     * @dev compare two assets, ignoring their amounts
+     * @param _asset First asset to examine
+     * @param _otherAsset Second asset to examine
+     * @return True if both structs represents the same asset
+     */
+    function isSameAs(Asset memory _asset, Asset memory _otherAsset) internal pure returns (bool) {
+        return
+            _asset.assetAddress == _otherAsset.assetAddress &&
+            _asset.category == _otherAsset.category &&
+            _asset.id == _otherAsset.id;
+    }
 }
