@@ -16,7 +16,8 @@
     "ERC"
   ],
   "files": [
-    "contracts/MultiToken.sol"
+    "contracts/MultiToken.sol",
+    "contracts/interfaces/Permit20.sol"
   ],
   "author": "PWN Finance",
   "license": "MIT",
