@@ -16,6 +16,10 @@ contract MultiTokenTestAdapter {
 		MultiToken.Asset(_assetAddress, _category, _amount, _id).transferAssetFrom(_source, _destination);
 	}
 
+	function permit(address _assetAddress, MultiToken.Category _category, uint256 _amount, uint256 _id, address _owner, address _spender, bytes memory _permit) external {
+		MultiToken.Asset(_assetAddress, _category, _amount, _id).permit(_owner, _spender, _permit);
+	}
+
 	function balanceOf(address _assetAddress, MultiToken.Category _category, uint256 _amount, uint256 _id, address _target) external view returns (uint256) {
 		return MultiToken.Asset(_assetAddress, _category, _amount, _id).balanceOf(_target);
 	}

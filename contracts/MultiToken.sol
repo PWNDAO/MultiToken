@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "./interfaces/Permit20.sol";
 
 library MultiToken {
 
@@ -87,6 +88,62 @@ library MultiToken {
     }
 
     /**
+     * permit
+     * @dev wrapping function for granting approval via permit signature
+     * @param _asset Struct defining all necessary context of a token
+     * @param _owner Account/address that signed the permit
+     * @param _spender Account/address that would be granted approval to `_asset`
+     * @param _permit Data about permit deadline (uint256) and permit signature (64/65 bytes).
+     * Deadline and signature should be pack encoded together.
+     * Signature can be standard (65 bytes) or compact (64 bytes) defined in EIP-2098.
+     */
+    function permit(Asset memory _asset, address _owner, address _spender, bytes memory _permit) internal {
+        if (_asset.category == Category.ERC20) {
+
+            // Parse deadline and permit signature parameters
+            uint256 deadline;
+            bytes32 r;
+            bytes32 s;
+            uint8 v;
+
+            // Parsing signature parameters used from OpenZeppelins ECDSA library
+            // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/83277ff916ac4f58fec072b8f28a252c1245c2f1/contracts/utils/cryptography/ECDSA.sol
+
+            // Deadline (32 bytes) + standard signature data (65 bytes) -> 97 bytes
+            if (_permit.length == 97) {
+                assembly {
+                    deadline := mload(add(_permit, 0x20))
+                    r := mload(add(_permit, 0x40))
+                    s := mload(add(_permit, 0x60))
+                    v := byte(0, mload(add(_permit, 0x80)))
+                }
+            }
+            // Deadline (32 bytes) + compact signature data (64 bytes) -> 96 bytes
+            else if (_permit.length == 96) {
+                bytes32 vs;
+
+                assembly {
+                    deadline := mload(add(_permit, 0x20))
+                    r := mload(add(_permit, 0x40))
+                    vs := mload(add(_permit, 0x60))
+                }
+
+                s = vs & bytes32(0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff);
+                v = uint8((uint256(vs) >> 255) + 27);
+            } else {
+                revert("MultiToken::Permit: Invalid permit length");
+            }
+
+            // Call permit with parsed parameters
+            Permit20(_asset.assetAddress).permit(_owner, _spender, _asset.amount, deadline, v, r, s);
+
+        } else {
+            // Currently supporting only ERC20 signed approvals via ERC2612
+            revert("MultiToken::Permit: Unsupported category");
+        }
+    }
+
+    /**
      * balanceOf
      * @dev wrapping function for checking balances on various token interfaces
      * @param _asset Struct defining all necessary context of a token
@@ -118,7 +175,7 @@ library MultiToken {
      * approveAsset
      * @dev wrapping function for approve calls on various token interfaces
      * @param _asset Struct defining all necessary context of a token
-     * @param _target Target address to be checked
+     * @param _target Account/address that would be granted approval to `_asset`
      */
     function approveAsset(Asset memory _asset, address _target) internal {
         if (_asset.category == Category.ERC20) {

@@ -146,6 +146,79 @@ describe("MultiToken library", function() {
 	});
 
 
+	describe("Permit", function() {
+
+		it("Should fail for ERC721 category", async function() {
+			const fakeToken = await smock.fake("IERC721");
+
+			await expect(
+				multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC721, 1, 2047, addr1.address, addr2.address, "0x")
+			).to.be.revertedWith("MultiToken::Permit: Unsupported category");
+		});
+
+		it("Should fail for ERC1155 category", async function() {
+			const fakeToken = await smock.fake("IERC1155");
+
+			await expect(
+				multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC1155, 10, 2047, addr1.address, addr2.address, "0x")
+			).to.be.revertedWith("MultiToken::Permit: Unsupported category");
+		});
+
+		it("Should fail for permit with wrong length", async function() {
+			const fakeToken = await smock.fake("IERC20");
+
+			await expect(
+				multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC20, 10, 0, addr1.address, addr2.address, "0xaabbccddaabbccdd")
+			).to.be.revertedWith("MultiToken::Permit: Invalid permit length");
+		});
+
+		it("Should parse standard signature", async function() {
+			const fakeToken = await smock.fake("Permit20");
+			const amount = 3123;
+			const deadline = "0x0000000000000000000000000000000000000000000000000000000000000010";
+			const r = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd";
+			const s = "0x1234567890123456789012345678901234567890123456789012345678901234";
+			const v = 0xff;
+			const permit = "0x0000000000000000000000000000000000000000000000000000000000000010abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd1234567890123456789012345678901234567890123456789012345678901234ff";
+
+			await multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address, addr2.address, permit);
+
+			expect(fakeToken.permit).to.have.been.calledOnceWith(addr1.address, addr2.address, amount, deadline, v, r, s);
+		});
+
+		it("Should parse compact signature with yParity 0 (EIP-2098)", async function() {
+			const fakeToken = await smock.fake("Permit20");
+			const amount = 3123;
+			const deadline = "0x0000000000000000000000000000000000000000000000000000000000000010";
+			// Values copied from https://eips.ethereum.org/EIPS/eip-2098#test-cases
+			const r = "0x68a020a209d3d56c46f38cc50a33f704f4a9a10a59377f8dd762ac66910e9b90";
+			const s = "0x7e865ad05c4035ab5792787d4a0297a43617ae897930a6fe4d822b8faea52064";
+			const v = 27;
+			const permit = "0x000000000000000000000000000000000000000000000000000000000000001068a020a209d3d56c46f38cc50a33f704f4a9a10a59377f8dd762ac66910e9b907e865ad05c4035ab5792787d4a0297a43617ae897930a6fe4d822b8faea52064";
+
+			await multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address, addr2.address, permit);
+
+			expect(fakeToken.permit).to.have.been.calledOnceWith(addr1.address, addr2.address, amount, deadline, v, r, s);
+		});
+
+		it("Should parse compact signature with yParity 1 (EIP-2098)", async function() {
+			const fakeToken = await smock.fake("Permit20");
+			const amount = 3123;
+			const deadline = "0x0000000000000000000000000000000000000000000000000000000000000010";
+			// Values copied from https://eips.ethereum.org/EIPS/eip-2098#test-cases
+			const r = "0x9328da16089fcba9bececa81663203989f2df5fe1faa6291a45381c81bd17f76";
+			const s = "0x139c6d6b623b42da56557e5e734a43dc83345ddfadec52cbe24d0cc64f550793";
+			const v = 28;
+			const permit = "0x00000000000000000000000000000000000000000000000000000000000000109328da16089fcba9bececa81663203989f2df5fe1faa6291a45381c81bd17f76939c6d6b623b42da56557e5e734a43dc83345ddfadec52cbe24d0cc64f550793";
+
+			await multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address, addr2.address, permit);
+
+			expect(fakeToken.permit).to.have.been.calledOnceWith(addr1.address, addr2.address, amount, deadline, v, r, s);
+		});
+
+	});
+
+
 	describe("BalanceOf", function() {
 
 		it("Should return balance of ERC20 token", async function() {
