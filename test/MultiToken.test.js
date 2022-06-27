@@ -35,7 +35,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC20");
 			fakeToken.transfer.returns(true);
 
-			await multiTokenAdapter.transferAsset(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address);
+			await multiTokenAdapter.transferAsset(CATEGORY.ERC20, fakeToken.address, 0, amount, addr1.address);
 
 			expect(fakeToken.transfer).to.have.been.calledOnce;
 			expect(fakeToken.transfer).to.have.been.calledWith(addr1.address, amount);
@@ -45,7 +45,7 @@ describe("MultiToken library", function() {
 			const assetId = 2047;
 			const fakeToken = await smock.fake("IERC721");
 
-			await multiTokenAdapter.transferAsset(fakeToken.address, CATEGORY.ERC721, 1, assetId, addr1.address);
+			await multiTokenAdapter.transferAsset(CATEGORY.ERC721, fakeToken.address, assetId, 1, addr1.address);
 
 			expect(fakeToken["safeTransferFrom(address,address,uint256)"]).to.have.been.calledOnce;
 			expect(fakeToken["safeTransferFrom(address,address,uint256)"]).to.have.been.calledWith(multiTokenAdapter.address, addr1.address, assetId);
@@ -56,7 +56,7 @@ describe("MultiToken library", function() {
 			const assetId = 2047;
 			const fakeToken = await smock.fake("IERC1155");
 
-			await multiTokenAdapter.transferAsset(fakeToken.address, CATEGORY.ERC1155, amount, assetId, addr1.address);
+			await multiTokenAdapter.transferAsset(CATEGORY.ERC1155, fakeToken.address, assetId, amount, addr1.address);
 
 			expect(fakeToken.safeTransferFrom).to.have.been.calledOnce;
 			expect(fakeToken.safeTransferFrom).to.have.been.calledWith(multiTokenAdapter.address, addr1.address, assetId, amount, "0x");
@@ -66,7 +66,7 @@ describe("MultiToken library", function() {
 			const assetId = 2047;
 			const fakeToken = await smock.fake("IERC1155");
 
-			await multiTokenAdapter.transferAsset(fakeToken.address, CATEGORY.ERC1155, 0, assetId, addr1.address);
+			await multiTokenAdapter.transferAsset(CATEGORY.ERC1155, fakeToken.address, assetId, 0, addr1.address);
 
 			expect(fakeToken.safeTransferFrom).to.have.been.calledOnce;
 			expect(fakeToken.safeTransferFrom).to.have.been.calledWith(multiTokenAdapter.address, addr1.address, assetId, 1, "0x");
@@ -76,7 +76,7 @@ describe("MultiToken library", function() {
 			let failed = false;
 
 			try {
-				await multiTokenAdapter.transferAsset(fakeToken.address, CATEGORY.unknown, 1, assetId, addr1.address);
+				await multiTokenAdapter.transferAsset(CATEGORY.unknown, fakeToken.address, assetId, 1, addr1.address);
 			} catch {
 				failed = true;
 			}
@@ -94,7 +94,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC20");
 			fakeToken.transferFrom.returns(true);
 
-			await multiTokenAdapter.transferAssetFrom(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address, addr2.address);
+			await multiTokenAdapter.transferAssetFrom(CATEGORY.ERC20, fakeToken.address, 0, amount, addr1.address, addr2.address);
 
 			expect(fakeToken.transferFrom).to.have.been.calledOnce;
 			expect(fakeToken.transferFrom).to.have.been.calledWith(addr1.address, addr2.address, amount);
@@ -104,7 +104,7 @@ describe("MultiToken library", function() {
 			const assetId = 2047;
 			const fakeToken = await smock.fake("IERC721");
 
-			await multiTokenAdapter.transferAssetFrom(fakeToken.address, CATEGORY.ERC721, 1, assetId, addr1.address, addr2.address);
+			await multiTokenAdapter.transferAssetFrom(CATEGORY.ERC721, fakeToken.address, assetId, 1, addr1.address, addr2.address);
 
 			expect(fakeToken["safeTransferFrom(address,address,uint256)"]).to.have.been.calledOnce;
 			expect(fakeToken["safeTransferFrom(address,address,uint256)"]).to.have.been.calledWith(addr1.address, addr2.address, assetId);
@@ -115,7 +115,7 @@ describe("MultiToken library", function() {
 			const assetId = 2047;
 			const fakeToken = await smock.fake("IERC1155");
 
-			await multiTokenAdapter.transferAssetFrom(fakeToken.address, CATEGORY.ERC1155, amount, assetId, addr1.address, addr2.address);
+			await multiTokenAdapter.transferAssetFrom(CATEGORY.ERC1155, fakeToken.address, assetId, amount, addr1.address, addr2.address);
 
 			expect(fakeToken.safeTransferFrom).to.have.been.calledOnce;
 			expect(fakeToken.safeTransferFrom).to.have.been.calledWith(addr1.address, addr2.address, assetId, amount, "0x");
@@ -125,7 +125,7 @@ describe("MultiToken library", function() {
 			const assetId = 2047;
 			const fakeToken = await smock.fake("IERC1155");
 
-			await multiTokenAdapter.transferAssetFrom(fakeToken.address, CATEGORY.ERC1155, 0, assetId, addr1.address, addr2.address);
+			await multiTokenAdapter.transferAssetFrom(CATEGORY.ERC1155, fakeToken.address, assetId, 0, addr1.address, addr2.address);
 
 			expect(fakeToken.safeTransferFrom).to.have.been.calledOnce;
 			expect(fakeToken.safeTransferFrom).to.have.been.calledWith(addr1.address, addr2.address, assetId, 1, "0x");
@@ -135,7 +135,7 @@ describe("MultiToken library", function() {
 			let failed = false;
 
 			try {
-				await multiTokenAdapter.transferAssetFrom(fakeToken.address, CATEGORY.unknown, 1, assetId, addr1.address, addr2.address);
+				await multiTokenAdapter.transferAssetFrom(CATEGORY.unknown, fakeToken.address, assetId, 1, addr1.address, addr2.address);
 			} catch {
 				failed = true;
 			}
@@ -152,7 +152,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC721");
 
 			await expect(
-				multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC721, 1, 2047, addr1.address, addr2.address, "0x")
+				multiTokenAdapter.permit(CATEGORY.ERC721, fakeToken.address, 2047, 1, addr1.address, addr2.address, "0x")
 			).to.be.revertedWith("MultiToken::Permit: Unsupported category");
 		});
 
@@ -160,7 +160,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC1155");
 
 			await expect(
-				multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC1155, 10, 2047, addr1.address, addr2.address, "0x")
+				multiTokenAdapter.permit(CATEGORY.ERC1155, fakeToken.address, 2047, 10, addr1.address, addr2.address, "0x")
 			).to.be.revertedWith("MultiToken::Permit: Unsupported category");
 		});
 
@@ -168,7 +168,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC20");
 
 			await expect(
-				multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC20, 10, 0, addr1.address, addr2.address, "0xaabbccddaabbccdd")
+				multiTokenAdapter.permit(CATEGORY.ERC20, fakeToken.address, 0, 10, addr1.address, addr2.address, "0xaabbccddaabbccdd")
 			).to.be.revertedWith("MultiToken::Permit: Invalid permit length");
 		});
 
@@ -181,7 +181,7 @@ describe("MultiToken library", function() {
 			const v = 0xff;
 			const permit = "0x0000000000000000000000000000000000000000000000000000000000000010abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd1234567890123456789012345678901234567890123456789012345678901234ff";
 
-			await multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address, addr2.address, permit);
+			await multiTokenAdapter.permit(CATEGORY.ERC20, fakeToken.address, 0, amount, addr1.address, addr2.address, permit);
 
 			expect(fakeToken.permit).to.have.been.calledOnceWith(addr1.address, addr2.address, amount, deadline, v, r, s);
 		});
@@ -196,7 +196,7 @@ describe("MultiToken library", function() {
 			const v = 27;
 			const permit = "0x000000000000000000000000000000000000000000000000000000000000001068a020a209d3d56c46f38cc50a33f704f4a9a10a59377f8dd762ac66910e9b907e865ad05c4035ab5792787d4a0297a43617ae897930a6fe4d822b8faea52064";
 
-			await multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address, addr2.address, permit);
+			await multiTokenAdapter.permit(CATEGORY.ERC20, fakeToken.address, 0, amount, addr1.address, addr2.address, permit);
 
 			expect(fakeToken.permit).to.have.been.calledOnceWith(addr1.address, addr2.address, amount, deadline, v, r, s);
 		});
@@ -211,7 +211,7 @@ describe("MultiToken library", function() {
 			const v = 28;
 			const permit = "0x00000000000000000000000000000000000000000000000000000000000000109328da16089fcba9bececa81663203989f2df5fe1faa6291a45381c81bd17f76939c6d6b623b42da56557e5e734a43dc83345ddfadec52cbe24d0cc64f550793";
 
-			await multiTokenAdapter.permit(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address, addr2.address, permit);
+			await multiTokenAdapter.permit(CATEGORY.ERC20, fakeToken.address, 0, amount, addr1.address, addr2.address, permit);
 
 			expect(fakeToken.permit).to.have.been.calledOnceWith(addr1.address, addr2.address, amount, deadline, v, r, s);
 		});
@@ -226,7 +226,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC20");
 			fakeToken.balanceOf.returns(amount);
 
-			const balance = await multiTokenAdapter.balanceOf(fakeToken.address, CATEGORY.ERC20, 732, 0, addr1.address);
+			const balance = await multiTokenAdapter.balanceOf(CATEGORY.ERC20, fakeToken.address, 0, 732, addr1.address);
 
 			expect(balance).to.equal(amount);
 			expect(fakeToken.balanceOf).to.have.been.calledOnce;
@@ -238,7 +238,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC721");
 			fakeToken.ownerOf.returns(addr1.address);
 
-			const balance = await multiTokenAdapter.balanceOf(fakeToken.address, CATEGORY.ERC721, 1, assetId, addr1.address);
+			const balance = await multiTokenAdapter.balanceOf(CATEGORY.ERC721, fakeToken.address, assetId, 1, addr1.address);
 
 			expect(balance).to.equal(1);
 			expect(fakeToken.ownerOf).to.have.been.calledOnce;
@@ -250,7 +250,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC721");
 			fakeToken.ownerOf.returns(addr2.address);
 
-			const balance = await multiTokenAdapter.balanceOf(fakeToken.address, CATEGORY.ERC721, 1, assetId, addr1.address);
+			const balance = await multiTokenAdapter.balanceOf(CATEGORY.ERC721, fakeToken.address, assetId, 1, addr1.address);
 
 			expect(balance).to.equal(0);
 			expect(fakeToken.ownerOf).to.have.been.calledOnce;
@@ -263,7 +263,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC1155");
 			fakeToken.balanceOf.returns(amount);
 
-			const balance = await multiTokenAdapter.balanceOf(fakeToken.address, CATEGORY.ERC1155, 732, assetId, addr1.address);
+			const balance = await multiTokenAdapter.balanceOf(CATEGORY.ERC1155, fakeToken.address, assetId, 732, addr1.address);
 
 			expect(balance).to.equal(amount);
 			expect(fakeToken.balanceOf).to.have.been.calledOnce;
@@ -274,7 +274,7 @@ describe("MultiToken library", function() {
 			let failed = false;
 
 			try {
-				await multiTokenAdapter.balanceOf(fakeToken.address, CATEGORY.unknown, 732, assetId, addr1.address);
+				await multiTokenAdapter.balanceOf(CATEGORY.unknown, fakeToken.address, assetId, 732, addr1.address);
 			} catch {
 				failed = true;
 			}
@@ -292,7 +292,7 @@ describe("MultiToken library", function() {
 			const fakeToken = await smock.fake("IERC20");
 			fakeToken.approve.returns(true);
 
-			await multiTokenAdapter.approveAsset(fakeToken.address, CATEGORY.ERC20, amount, 0, addr1.address);
+			await multiTokenAdapter.approveAsset(CATEGORY.ERC20, fakeToken.address, 0, amount, addr1.address);
 
 			expect(fakeToken.approve).to.have.been.calledOnce;
 			expect(fakeToken.approve).to.have.been.calledWith(addr1.address, amount);
@@ -302,7 +302,7 @@ describe("MultiToken library", function() {
 			const assetId = 657;
 			const fakeToken = await smock.fake("IERC721");
 
-			await multiTokenAdapter.approveAsset(fakeToken.address, CATEGORY.ERC721, 0, assetId, addr1.address);
+			await multiTokenAdapter.approveAsset(CATEGORY.ERC721, fakeToken.address, assetId, 0, addr1.address);
 
 			expect(fakeToken.approve).to.have.been.calledOnce;
 			expect(fakeToken.approve).to.have.been.calledWith(addr1.address, assetId);
@@ -311,7 +311,7 @@ describe("MultiToken library", function() {
 		it("Should call set approval for all on ERC1155 token", async function() {
 			const fakeToken = await smock.fake("IERC1155");
 
-			await multiTokenAdapter.approveAsset(fakeToken.address, CATEGORY.ERC1155, 0, 657, addr1.address);
+			await multiTokenAdapter.approveAsset(CATEGORY.ERC1155, fakeToken.address, 657, 0, addr1.address);
 
 			expect(fakeToken.setApprovalForAll).to.have.been.calledOnce;
 			expect(fakeToken.setApprovalForAll).to.have.been.calledWith(addr1.address, true);
@@ -321,7 +321,7 @@ describe("MultiToken library", function() {
 			let failed = false;
 
 			try {
-				await multiTokenAdapter.approveAsset(fakeToken.address, CATEGORY.unknown, 0, 657, addr1.address);
+				await multiTokenAdapter.approveAsset(CATEGORY.unknown, fakeToken.address, 657, 0, addr1.address);
 			} catch {
 				failed = true;
 			}
@@ -336,49 +336,49 @@ describe("MultiToken library", function() {
 
 		it("Should return false when ERC20 token has non-zero id", async function() {
 			expect(
-				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 657, 1)
+				await multiTokenAdapter.isValid(CATEGORY.ERC20, addr1.address, 1, 657)
 			).to.equal(false);
 		});
 
 		it("Should return false when ERC20 token has zero amount", async function() {
 			expect(
-				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 0, 0)
+				await multiTokenAdapter.isValid(CATEGORY.ERC20, addr1.address, 0, 0)
 			).to.equal(false);
 		});
 
 		it("Should return false when ERC721 token has amount lower than 1", async function() {
 			expect(
-				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 0, 5)
+				await multiTokenAdapter.isValid(CATEGORY.ERC721, addr1.address, 5, 0)
 			).to.equal(false);
 		});
 
 		it("Should return false when ERC721 token has amount bigger than 1", async function() {
 			expect(
-				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 2, 5)
+				await multiTokenAdapter.isValid(CATEGORY.ERC721, addr1.address, 5, 2)
 			).to.equal(false);
 		});
 
 		it("Should return false when ERC1155 token has zero amount", async function() {
 			expect(
-				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC1155, 0, 5)
+				await multiTokenAdapter.isValid(CATEGORY.ERC1155, addr1.address, 5, 0)
 			).to.equal(false);
 		});
 
 		it("Should return true when ERC20 token is valid", async function() {
 			expect(
-				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC20, 3232, 0)
+				await multiTokenAdapter.isValid(CATEGORY.ERC20, addr1.address, 0, 3232)
 			).to.equal(true);
 		});
 
 		it("Should return true when ERC721 token is valid", async function() {
 			expect(
-				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC721, 1, 3232)
+				await multiTokenAdapter.isValid(CATEGORY.ERC721, addr1.address, 3232, 1)
 			).to.equal(true);
 		});
 
 		it("Should return true when ERC1155 token is valid", async function() {
 			expect(
-				await multiTokenAdapter.isValid(addr1.address, CATEGORY.ERC1155, 3232, 332)
+				await multiTokenAdapter.isValid(CATEGORY.ERC1155, addr1.address, 332, 3232)
 			).to.equal(true);
 		});
 
@@ -390,8 +390,8 @@ describe("MultiToken library", function() {
 		it("Should return false when assets have different addresses", async function() {
 			expect(
 				await multiTokenAdapter.isSameAs(
-					addr1.address, CATEGORY.ERC1155, 3232, 332,
-					addr2.address, CATEGORY.ERC1155, 3232, 332
+					CATEGORY.ERC1155, addr1.address, 332, 3232,
+					CATEGORY.ERC1155, addr2.address, 332, 3232
 				)
 			).to.equal(false);
 		});
@@ -399,8 +399,8 @@ describe("MultiToken library", function() {
 		it("Should return false when assets have different categories", async function() {
 			expect(
 				await multiTokenAdapter.isSameAs(
-					addr1.address, CATEGORY.ERC721, 3232, 332,
-					addr1.address, CATEGORY.ERC1155, 3232, 332
+					CATEGORY.ERC721, addr1.address, 332, 3232,
+					CATEGORY.ERC1155, addr1.address, 332, 3232
 				)
 			).to.equal(false);
 		});
@@ -408,8 +408,8 @@ describe("MultiToken library", function() {
 		it("Should return false when assets have different ids", async function() {
 			expect(
 				await multiTokenAdapter.isSameAs(
-					addr1.address, CATEGORY.ERC1155, 3232, 332,
-					addr1.address, CATEGORY.ERC1155, 3232, 1
+					CATEGORY.ERC1155, addr1.address, 332, 3232,
+					CATEGORY.ERC1155, addr1.address, 1, 3232
 				)
 			).to.equal(false);
 		});
@@ -417,8 +417,8 @@ describe("MultiToken library", function() {
 		it("Should return true when assets have different amounts", async function() {
 			expect(
 				await multiTokenAdapter.isSameAs(
-					addr1.address, CATEGORY.ERC1155, 3232, 332,
-					addr1.address, CATEGORY.ERC1155, 1, 332
+					CATEGORY.ERC1155, addr1.address, 332, 3232,
+					CATEGORY.ERC1155, addr1.address, 332, 1
 				)
 			).to.equal(true);
 		});

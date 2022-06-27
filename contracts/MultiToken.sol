@@ -20,16 +20,16 @@ library MultiToken {
 
     /**
      * @title Asset
-     * @param assetAddress Address of the token contract defining the asset
      * @param category Corresponding asset category
-     * @param amount Amount of fungible tokens or 0 -> 1
+     * @param assetAddress Address of the token contract defining the asset
      * @param id TokenID of an NFT or 0
+     * @param amount Amount of fungible tokens or 0 -> 1
      */
     struct Asset {
-        address assetAddress;
         Category category;
-        uint256 amount;
+        address assetAddress;
         uint256 id;
+        uint256 amount;
     }
 
     /**
@@ -227,8 +227,8 @@ library MultiToken {
      */
     function isSameAs(Asset memory _asset, Asset memory _otherAsset) internal pure returns (bool) {
         return
-            _asset.assetAddress == _otherAsset.assetAddress &&
             _asset.category == _otherAsset.category &&
+            _asset.assetAddress == _otherAsset.assetAddress &&
             _asset.id == _otherAsset.id;
     }
 }
