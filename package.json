@@ -24,15 +24,5 @@
   "bugs": {
     "url": "https://github.com/PWNFinance/MultiToken/issues"
   },
-  "homepage": "https://github.com/PWNFinance/MultiToken#readme",
-  "devDependencies": {
-    "@defi-wonderland/smock": "^2.0.7",
-    "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
-    "@openzeppelin/contracts": "^4.3.2",
-    "chai": "^4.3.4",
-    "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.5.1",
-    "hardhat": "2.9.0"
-  }
+  "homepage": "https://github.com/PWNFinance/MultiToken#readme"
 }
