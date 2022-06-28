@@ -1,8 +1,3 @@
 [default]
-remappings = [
-    '@ensdomains/=node_modules/@ensdomains/',
-    '@openzeppelin/=node_modules/@openzeppelin/',
-    'hardhat/=node_modules/hardhat/',
-]
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
