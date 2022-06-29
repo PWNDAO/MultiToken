@@ -3,7 +3,7 @@
   "version": "2.0.0-beta.3",
   "description": "Solidity library unifying ERC20, ERC721 &amp; ERC1155 transfers by wrapping them into MultiToken Asset struct.",
   "scripts": {
-    "test": "npx hardhat test"
+    "test": "forge test"
   },
   "repository": {
     "type": "git",
@@ -16,8 +16,8 @@
     "ERC"
   ],
   "files": [
-    "contracts/MultiToken.sol",
-    "contracts/interfaces/Permit20.sol"
+    "src/MultiToken.sol",
+    "src/interfaces/Permit20.sol"
   ],
   "author": "PWN Finance",
   "license": "MIT",
