@@ -15,7 +15,7 @@ import "../src/MultiToken.sol";
 
 contract MultiToken_transferAsset_Test is Test {
 
-	function test_shouldCallTransfer_whenERC20C() external {
+	function test_shouldCallTransfer_whenERC20() external {
 		IERC20 token = IERC20(address(0xa66e7));
 		address recipient = address(0xb0b);
 		uint256 amount = 101e18;
