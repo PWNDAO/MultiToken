@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
-import "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC1155.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
+
 
 library MultiToken {
 
@@ -32,6 +33,11 @@ library MultiToken {
         uint256 amount;
     }
 
+
+    /*----------------------------------------------------------*|
+    |*  # TRANSFER ASSET                                        *|
+    |*----------------------------------------------------------*/
+
     /**
      * transferAsset
      * @dev wrapping function for transfer calls on various token interfaces
@@ -39,37 +45,27 @@ library MultiToken {
      * @param _dest Destination address
      */
     function transferAsset(Asset memory _asset, address _dest) internal {
-        if (_asset.category == Category.ERC20) {
-            IERC20 token = IERC20(_asset.assetAddress);
-            token.transfer(_dest, _asset.amount);
-
-        } else if (_asset.category == Category.ERC721) {
-            IERC721 token = IERC721(_asset.assetAddress);
-            token.safeTransferFrom(address(this), _dest, _asset.id);
-
-        } else if (_asset.category == Category.ERC1155) {
-            IERC1155 token = IERC1155(_asset.assetAddress);
-            if (_asset.amount == 0) {
-                _asset.amount = 1;
-            }
-            token.safeTransferFrom(address(this), _dest, _asset.id, _asset.amount, "");
-
-        } else {
-            revert("MultiToken: Unsupported category");
-        }
+        _transferAssetFrom(_asset, address(this), _dest);
     }
 
     /**
      * transferAssetFrom
-     * @dev wrapping function for transfer From calls on various token interfaces
+     * @dev wrapping function for transferFrom calls on various token interfaces
      * @param _asset Struct defining all necessary context of a token
      * @param _source Account/address that provided the allowance
      * @param _dest Destination address
      */
     function transferAssetFrom(Asset memory _asset, address _source, address _dest) internal {
+        _transferAssetFrom(_asset, _source, _dest);
+    }
+
+    function _transferAssetFrom(Asset memory _asset, address _source, address _dest) private {
         if (_asset.category == Category.ERC20) {
             IERC20 token = IERC20(_asset.assetAddress);
-            token.transferFrom(_source, _dest, _asset.amount);
+            if (_source == address(this))
+                require(token.transfer(_dest, _asset.amount), "MultiToken: ERC20 transfer failed");
+            else
+                require(token.transferFrom(_source, _dest, _asset.amount), "MultiToken: ERC20 transferFrom failed");
 
         } else if (_asset.category == Category.ERC721) {
             IERC721 token = IERC721(_asset.assetAddress);
@@ -77,15 +73,75 @@ library MultiToken {
 
         } else if (_asset.category == Category.ERC1155) {
             IERC1155 token = IERC1155(_asset.assetAddress);
-            if (_asset.amount == 0) {
-                _asset.amount = 1;
-            }
-            token.safeTransferFrom(_source, _dest, _asset.id, _asset.amount, "");
+            token.safeTransferFrom(_source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, "");
 
         } else {
             revert("MultiToken: Unsupported category");
         }
     }
+
+
+    /*----------------------------------------------------------*|
+    |*  # TRANSFER ASSET CALLDATA                               *|
+    |*----------------------------------------------------------*/
+
+    /**
+     * transferAssetCalldata
+     * @dev wrapping function for transfer calldata on various token interfaces
+     * @param _asset Struct defining all necessary context of a token
+     * @param _source Account/address that should initiate the transfer
+     * @param _dest Destination address
+     */
+    function transferAssetCalldata(Asset memory _asset, address _source, address _dest) pure internal returns (bytes memory) {
+        return _transferAssetFromCalldata(true, _asset, _source, _dest);
+    }
+
+    /**
+     * transferAssetFromCalldata
+     * @dev wrapping function for transferFrom calladata on various token interfaces
+     * @param _asset Struct defining all necessary context of a token
+     * @param _source Account/address that provided the allowance
+     * @param _dest Destination address
+     */
+    function transferAssetFromCalldata(Asset memory _asset, address _source, address _dest) pure internal returns (bytes memory) {
+        return _transferAssetFromCalldata(false, _asset, _source, _dest);
+    }
+
+    function _transferAssetFromCalldata(bool fromSender, Asset memory _asset, address _source, address _dest) pure private returns (bytes memory) {
+        if (_asset.category == Category.ERC20) {
+            if (fromSender) {
+                return abi.encodeWithSelector(
+                    IERC20.transfer.selector,
+                    _dest, _asset.amount
+                );
+            } else {
+                return abi.encodeWithSelector(
+                    IERC20.transferFrom.selector,
+                    _source, _dest, _asset.amount
+                );
+            }
+        } else if (_asset.category == Category.ERC721) {
+            return abi.encodeWithSignature(
+                "safeTransferFrom(address,address,uint256)",
+                _source, _dest, _asset.id
+            );
+
+        } else if (_asset.category == Category.ERC1155) {
+            return abi.encodeWithSelector(
+                IERC1155.safeTransferFrom.selector,
+                _source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, ""
+            );
+
+
+        } else {
+            revert("MultiToken: Unsupported category");
+        }
+    }
+
+
+    /*----------------------------------------------------------*|
+    |*  # PERMIT                                                *|
+    |*----------------------------------------------------------*/
 
     /**
      * permit
@@ -143,6 +199,11 @@ library MultiToken {
         }
     }
 
+
+    /*----------------------------------------------------------*|
+    |*  # BALANCE OF                                            *|
+    |*----------------------------------------------------------*/
+
     /**
      * balanceOf
      * @dev wrapping function for checking balances on various token interfaces
@@ -171,6 +232,11 @@ library MultiToken {
         }
     }
 
+
+    /*----------------------------------------------------------*|
+    |*  # APPROVE ASSET                                         *|
+    |*----------------------------------------------------------*/
+
     /**
      * approveAsset
      * @dev wrapping function for approve calls on various token interfaces
@@ -194,6 +260,11 @@ library MultiToken {
             revert("MultiToken: Unsupported category");
         }
     }
+
+
+    /*----------------------------------------------------------*|
+    |*  # ASSET CHECKS                                          *|
+    |*----------------------------------------------------------*/
 
     /**
      * isValid
