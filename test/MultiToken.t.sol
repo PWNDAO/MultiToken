@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.4;
+pragma solidity 0.8.16;
 
 import "forge-std/Test.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
-import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
-import "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC1155.sol";
 import "../src/MultiToken.sol";
 
 
