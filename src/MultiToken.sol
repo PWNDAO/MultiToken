@@ -61,19 +61,16 @@ library MultiToken {
 
     function _transferAssetFrom(Asset memory _asset, address _source, address _dest) private {
         if (_asset.category == Category.ERC20) {
-            IERC20 token = IERC20(_asset.assetAddress);
             if (_source == address(this))
-                require(token.transfer(_dest, _asset.amount), "MultiToken: ERC20 transfer failed");
+                require(IERC20(_asset.assetAddress).transfer(_dest, _asset.amount), "MultiToken: ERC20 transfer failed");
             else
-                require(token.transferFrom(_source, _dest, _asset.amount), "MultiToken: ERC20 transferFrom failed");
+                require(IERC20(_asset.assetAddress).transferFrom(_source, _dest, _asset.amount), "MultiToken: ERC20 transferFrom failed");
 
         } else if (_asset.category == Category.ERC721) {
-            IERC721 token = IERC721(_asset.assetAddress);
-            token.safeTransferFrom(_source, _dest, _asset.id);
+            IERC721(_asset.assetAddress).safeTransferFrom(_source, _dest, _asset.id);
 
         } else if (_asset.category == Category.ERC1155) {
-            IERC1155 token = IERC1155(_asset.assetAddress);
-            token.safeTransferFrom(_source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, "");
+            IERC1155(_asset.assetAddress).safeTransferFrom(_source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, "");
 
         } else {
             revert("MultiToken: Unsupported category");
@@ -212,20 +209,17 @@ library MultiToken {
      */
     function balanceOf(Asset memory _asset, address _target) internal view returns (uint256) {
         if (_asset.category == Category.ERC20) {
-            IERC20 token = IERC20(_asset.assetAddress);
-            return token.balanceOf(_target);
+            return IERC20(_asset.assetAddress).balanceOf(_target);
 
         } else if (_asset.category == Category.ERC721) {
-            IERC721 token = IERC721(_asset.assetAddress);
-            if (token.ownerOf(_asset.id) == _target) {
+            if (IERC721(_asset.assetAddress).ownerOf(_asset.id) == _target) {
                 return 1;
             } else {
                 return 0;
             }
 
         } else if (_asset.category == Category.ERC1155) {
-            IERC1155 token = IERC1155(_asset.assetAddress);
-            return token.balanceOf(_target, _asset.id);
+            return IERC1155(_asset.assetAddress).balanceOf(_target, _asset.id);
 
         } else {
             revert("MultiToken: Unsupported category");
@@ -245,16 +239,13 @@ library MultiToken {
      */
     function approveAsset(Asset memory _asset, address _target) internal {
         if (_asset.category == Category.ERC20) {
-            IERC20 token = IERC20(_asset.assetAddress);
-            token.approve(_target, _asset.amount);
+            IERC20(_asset.assetAddress).approve(_target, _asset.amount);
 
         } else if (_asset.category == Category.ERC721) {
-            IERC721 token = IERC721(_asset.assetAddress);
-            token.approve(_target, _asset.id);
+            IERC721(_asset.assetAddress).approve(_target, _asset.id);
 
         } else if (_asset.category == Category.ERC1155) {
-            IERC1155 token = IERC1155(_asset.assetAddress);
-            token.setApprovalForAll(_target, true);
+            IERC1155(_asset.assetAddress).setApprovalForAll(_target, true);
 
         } else {
             revert("MultiToken: Unsupported category");
