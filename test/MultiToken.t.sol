@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.4;
+pragma solidity 0.8.16;
 
 import "forge-std/Test.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
-import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import "openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
-import "openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
+import "openzeppelin-contracts/contracts/interfaces/IERC1155.sol";
 import "../src/MultiToken.sol";
 
 
@@ -13,93 +13,63 @@ import "../src/MultiToken.sol";
 |*  # TRANSFER ASSET                                        *|
 |*----------------------------------------------------------*/
 
-contract MultiToken_transferAsset_Test is Test {
+contract MultiToken_TransferAsset_Test is Test {
 
-	function test_shouldCallTransfer_whenERC20() external {
-		IERC20 token = IERC20(address(0xa66e7));
-		address recipient = address(0xb0b);
-		uint256 amount = 101e18;
+	address token = address(0xa66e7);
+	address recipient = address(0xb0b);
+	uint256 id = 373733;
+	uint256 amount = 101e18;
 
-		vm.etch(address(token), bytes("0x01"));
+	function setUp() external {
+		vm.etch(token, bytes("0x01"));
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.transfer.selector),
+			token,
+			abi.encodeWithSignature("transfer(address,uint256)"),
 			abi.encode(true)
 		);
+	}
 
+
+	function test_shouldCallTransfer_whenERC20() external {
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.transfer.selector, recipient, amount)
+			token,
+			abi.encodeWithSignature("transfer(address,uint256)", recipient, amount)
 		);
 		MultiToken.transferAsset(
-			MultiToken.Asset(MultiToken.Category.ERC20, address(token), 0, amount),
+			MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount),
 			recipient
 		);
 	}
 
 	function test_shouldCallSafeTransferFrom_whenERC721() external {
-		IERC721 token = IERC721(address(0xa66e7));
-		address recipient = address(0xb0b);
-		uint256 id = 373733;
-
-		vm.etch(address(token), bytes("0x01"));
-		vm.mockCall(
-			address(token),
-			abi.encodeWithSignature("safeTransferFrom(address,address,uint256)"),
-			abi.encode(true)
-		);
-
 		vm.expectCall(
-			address(token),
+			token,
 			abi.encodeWithSignature("safeTransferFrom(address,address,uint256)", address(this), recipient, id)
 		);
 		MultiToken.transferAsset(
-			MultiToken.Asset(MultiToken.Category.ERC721, address(token), id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
 			recipient
 		);
 	}
 
 	function test_shouldCallSafeTransferFrom_whenERC1155() external {
-		IERC1155 token = IERC1155(address(0xa66e7));
-		address recipient = address(0xb0b);
-		uint256 id = 373733;
-		uint256 amount = 101e18;
-
-		vm.etch(address(token), bytes("0x01"));
-		vm.mockCall(
-			address(token),
-			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)"),
-			abi.encode(true)
-		);
-
 		vm.expectCall(
-			address(token),
+			token,
 			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", address(this), recipient, id, amount, "")
 		);
 		MultiToken.transferAsset(
-			MultiToken.Asset(MultiToken.Category.ERC1155, address(token), id, amount),
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount),
 			recipient
 		);
 	}
 
 	function test_shouldSetAmountToOne_whenERC1155WithZeroAmount() external {
-		IERC1155 token = IERC1155(address(0xa66e7));
-		address recipient = address(0xb0b);
-		uint256 id = 373733;
-
-		vm.etch(address(token), bytes("0x01"));
-		vm.mockCall(
-			address(token),
-			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)"),
-			abi.encode(true)
-		);
-
 		vm.expectCall(
-			address(token),
+			token,
 			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", address(this), recipient, id, 1, "")
 		);
 		MultiToken.transferAsset(
-			MultiToken.Asset(MultiToken.Category.ERC1155, address(token), id, 0),
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0),
 			recipient
 		);
 	}
@@ -111,102 +81,205 @@ contract MultiToken_transferAsset_Test is Test {
 |*  # TRANSFER ASSET FROM                                   *|
 |*----------------------------------------------------------*/
 
-contract MultiToken_transferAssetFrom_Test is Test {
+contract MultiToken_TransferAssetFrom_Test is Test {
 
-	function test_shouldCallTransferFrom_whenERC20() external {
-		IERC20 token = IERC20(address(0xa66e7));
-		address source = address(0xa11ce);
-		address recipient = address(0xb0b);
-		uint256 amount = 101e18;
+	address token = address(0xa66e7);
+	address source = address(0xa11ce);
+	address recipient = address(0xb0b);
+	uint256 id = 373733;
+	uint256 amount = 101e18;
 
+	function setUp() external {
 		vm.etch(address(token), bytes("0x01"));
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.transferFrom.selector),
+			token,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)"),
 			abi.encode(true)
 		);
+	}
 
+
+	function test_shouldCallTransferFrom_whenERC20() external {
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.transferFrom.selector, source, recipient, amount)
+			token,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, amount)
 		);
 		MultiToken.transferAssetFrom(
-			MultiToken.Asset(MultiToken.Category.ERC20, address(token), 0, amount),
+			MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount),
 			source,
 			recipient
 		);
 	}
 
 	function test_shouldCallSafeTransferFrom_whenERC721() external {
-		IERC721 token = IERC721(address(0xa66e7));
-		address source = address(0xa11ce);
-		address recipient = address(0xb0b);
-		uint256 id = 373733;
-
-		vm.etch(address(token), bytes("0x01"));
-		vm.mockCall(
-			address(token),
-			abi.encodeWithSignature("safeTransferFrom(address,address,uint256)"),
-			abi.encode(true)
-		);
-
 		vm.expectCall(
-			address(token),
+			token,
 			abi.encodeWithSignature("safeTransferFrom(address,address,uint256)", source, recipient, id)
 		);
 		MultiToken.transferAssetFrom(
-			MultiToken.Asset(MultiToken.Category.ERC721, address(token), id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
 			source,
 			recipient
 		);
 	}
 
 	function test_shouldCallSafeTransferFrom_whenERC1155() external {
-		IERC1155 token = IERC1155(address(0xa66e7));
-		address source = address(0xa11ce);
-		address recipient = address(0xb0b);
-		uint256 id = 373733;
-		uint256 amount = 101e18;
-
-		vm.etch(address(token), bytes("0x01"));
-		vm.mockCall(
-			address(token),
-			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)"),
-			abi.encode(true)
-		);
-
 		vm.expectCall(
-			address(token),
+			token,
 			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, amount, "")
 		);
 		MultiToken.transferAssetFrom(
-			MultiToken.Asset(MultiToken.Category.ERC1155, address(token), id, amount),
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount),
 			source,
 			recipient
 		);
 	}
 
 	function test_shouldSetAmountToOne_whenERC1155WithZeroAmount() external {
-		IERC1155 token = IERC1155(address(0xa66e7));
-		address source = address(0xa11ce);
-		address recipient = address(0xb0b);
-		uint256 id = 373733;
-
-		vm.etch(address(token), bytes("0x01"));
-		vm.mockCall(
-			address(token),
-			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)"),
-			abi.encode(true)
-		);
-
 		vm.expectCall(
-			address(token),
+			token,
 			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, 1, "")
 		);
 		MultiToken.transferAssetFrom(
-			MultiToken.Asset(MultiToken.Category.ERC1155, address(token), id, 0),
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0),
 			source,
 			recipient
+		);
+	}
+
+}
+
+
+/*----------------------------------------------------------*|
+|*  # TRANSFER ASSET CALLDATA                               *|
+|*----------------------------------------------------------*/
+
+contract MultiToken_TransferAssetCalldata_Test is Test {
+
+	address token = address(0xa66e7);
+	address source = address(0xa11ce);
+	address recipient = address(0xb0b);
+	uint256 id = 373733;
+	uint256 amount = 101e18;
+
+
+	function test_shouldReturnTransferCalldata_whenERC20() external {
+		bytes memory _calldata = MultiToken.transferAssetCalldata(
+			MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount),
+			source,
+			recipient
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("transfer(address,uint256)", recipient, amount)
+		);
+	}
+
+	function test_shouldReturnSafeTransferFromCalldata_whenERC721() external {
+		bytes memory _calldata = MultiToken.transferAssetCalldata(
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
+			source,
+			recipient
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("safeTransferFrom(address,address,uint256)", source, recipient, id)
+		);
+	}
+
+	function test_shouldReturnSafeTransferFromCalldata_whenERC1155() external {
+		bytes memory _calldata = MultiToken.transferAssetCalldata(
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount),
+			source,
+			recipient
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, amount, "")
+		);
+	}
+
+	function test_shouldReturnAmountToOne_whenERC1155WithZeroAmount() external {
+		bytes memory _calldata = MultiToken.transferAssetCalldata(
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0),
+			source,
+			recipient
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, 1, "")
+		);
+	}
+
+}
+
+
+/*----------------------------------------------------------*|
+|*  # TRANSFER ASSET FROM CALLDATA                          *|
+|*----------------------------------------------------------*/
+
+contract MultiToken_TransferAssetFromCalldata_Test is Test {
+
+	address token = address(0xa66e7);
+	address source = address(0xa11ce);
+	address recipient = address(0xb0b);
+	uint256 id = 373733;
+	uint256 amount = 101e18;
+
+
+	function test_shouldReturnTransferFromCalldata_whenERC20() external {
+		bytes memory _calldata = MultiToken.transferAssetFromCalldata(
+			MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount),
+			source,
+			recipient
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, amount)
+		);
+	}
+
+	function test_shouldReturnSafeTransferFromCalldata_whenERC721() external {
+		bytes memory _calldata = MultiToken.transferAssetFromCalldata(
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
+			source,
+			recipient
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("safeTransferFrom(address,address,uint256)", source, recipient, id)
+		);
+	}
+
+	function test_shouldReturnSafeTransferFromCalldata_whenERC1155() external {
+		bytes memory _calldata = MultiToken.transferAssetFromCalldata(
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount),
+			source,
+			recipient
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, amount, "")
+		);
+	}
+
+	function test_shouldReturnAmountToOne_whenERC1155WithZeroAmount() external {
+		bytes memory _calldata = MultiToken.transferAssetFromCalldata(
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0),
+			source,
+			recipient
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, 1, "")
 		);
 	}
 
@@ -217,7 +290,7 @@ contract MultiToken_transferAssetFrom_Test is Test {
 |*  # PERMIT                                                *|
 |*----------------------------------------------------------*/
 
-contract MultiToken_permit_Test is Test {
+contract MultiToken_Permit_Test is Test {
 
 	function test_shouldFail_whenERC721() external {
 		vm.expectRevert("MultiToken::Permit: Unsupported category");
@@ -335,7 +408,7 @@ contract MultiToken_permit_Test is Test {
 |*  # BALANCE OF                                            *|
 |*----------------------------------------------------------*/
 
-contract MultiToken_balanceOf_Test is Test {
+contract MultiToken_BalanceOf_Test is Test {
 
 	function test_shouldReturnBalance_whenERC20() external {
 		IERC20 token = IERC20(address(0xa66e7));
@@ -437,7 +510,7 @@ contract MultiToken_balanceOf_Test is Test {
 |*  # APPROVE ASSET                                         *|
 |*----------------------------------------------------------*/
 
-contract MultiToken_approveAsset_Test is Test {
+contract MultiToken_ApproveAsset_Test is Test {
 
 	function test_shouldCallApprove_whenERC20() external {
 		IERC20 token = IERC20(address(0xa66e7));
@@ -503,7 +576,7 @@ contract MultiToken_approveAsset_Test is Test {
 |*  # IS VALID                                              *|
 |*----------------------------------------------------------*/
 
-contract MultiToken_isValid_Test is Test {
+contract MultiToken_IsValid_Test is Test {
 
 	function test_shouldFail_whenERC20WithNonZeroId() external {
 		bool isValid = MultiToken.isValid(
@@ -576,7 +649,7 @@ contract MultiToken_isValid_Test is Test {
 |*  # IS SAME AS                                            *|
 |*----------------------------------------------------------*/
 
-contract MultiToken_isSameAs_Test is Test {
+contract MultiToken_IsSameAs_Test is Test {
 
 	function test_shouldFail_whenDifferentCategory() external {
 		bool isSame = MultiToken.isSameAs(
