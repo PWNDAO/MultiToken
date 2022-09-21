@@ -1,7 +1,7 @@
 {
   "name": "@pwnfinance/multitoken",
-  "version": "2.0.0-beta.4",
-  "description": "Solidity library unifying ERC20, ERC721 &amp; ERC1155 transfers by wrapping them into MultiToken Asset struct.",
+  "version": "2.0.0",
+  "description": "Solidity library unifying ERC20, ERC721, ERC1155 &amp; CryptoKitties transfers by wrapping them into MultiToken Asset struct.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PWNFinance/MultiToken.git"
@@ -13,6 +13,7 @@
     "ERC"
   ],
   "files": [
+    "src/interfaces/ICryptoKitties.sol",
     "src/MultiToken.sol"
   ],
   "author": "PWN Finance",
