@@ -11,7 +11,7 @@ library MultiToken {
 
     /**
      * @title Category
-     * @dev enum representation Asset category
+     * @dev Enum representation Asset category.
      */
     enum Category {
         ERC20,
@@ -21,10 +21,10 @@ library MultiToken {
 
     /**
      * @title Asset
-     * @param category Corresponding asset category
-     * @param assetAddress Address of the token contract defining the asset
-     * @param id TokenID of an NFT or 0
-     * @param amount Amount of fungible tokens or 0 -> 1
+     * @param category Corresponding asset category.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id TokenID of an NFT or 0.
+     * @param amount Amount of fungible tokens or 0 -> 1.
      */
     struct Asset {
         Category category;
@@ -39,27 +39,30 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * transferAsset
-     * @dev wrapping function for transfer calls on various token interfaces
-     * @param _asset Struct defining all necessary context of a token
-     * @param _dest Destination address
+     * transferAssetFrom
+     * @dev Wrapping function for `transferFrom` calls on various token interfaces.
+     *      If `_source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
+     * @param _asset Struct defining all necessary context of a token.
+     * @param _source Account/address that provided the allowance.
+     * @param _dest Destination address.
      */
-    function transferAsset(Asset memory _asset, address _dest) internal {
-        _transferAssetFrom(_asset, address(this), _dest);
+    function transferAssetFrom(Asset memory _asset, address _source, address _dest) internal {
+        _transferAssetFrom(_asset, _source, _dest, false);
     }
 
     /**
-     * transferAssetFrom
-     * @dev wrapping function for transferFrom calls on various token interfaces
-     * @param _asset Struct defining all necessary context of a token
-     * @param _source Account/address that provided the allowance
-     * @param _dest Destination address
+     * safeTransferAssetFrom
+     * @dev Wrapping function for `safeTransferFrom` calls on various token interfaces.
+     *      If `_source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
+     * @param _asset Struct defining all necessary context of a token.
+     * @param _source Account/address that provided the allowance.
+     * @param _dest Destination address.
      */
-    function transferAssetFrom(Asset memory _asset, address _source, address _dest) internal {
-        _transferAssetFrom(_asset, _source, _dest);
+    function safeTransferAssetFrom(Asset memory _asset, address _source, address _dest) internal {
+        _transferAssetFrom(_asset, _source, _dest, true);
     }
 
-    function _transferAssetFrom(Asset memory _asset, address _source, address _dest) private {
+    function _transferAssetFrom(Asset memory _asset, address _source, address _dest, bool isSafe) private {
         if (_asset.category == Category.ERC20) {
             if (_source == address(this))
                 require(IERC20(_asset.assetAddress).transfer(_dest, _asset.amount), "MultiToken: ERC20 transfer failed");
@@ -67,7 +70,10 @@ library MultiToken {
                 require(IERC20(_asset.assetAddress).transferFrom(_source, _dest, _asset.amount), "MultiToken: ERC20 transferFrom failed");
 
         } else if (_asset.category == Category.ERC721) {
-            IERC721(_asset.assetAddress).safeTransferFrom(_source, _dest, _asset.id);
+            if (!isSafe)
+                IERC721(_asset.assetAddress).transferFrom(_source, _dest, _asset.id);
+            else
+                IERC721(_asset.assetAddress).safeTransferFrom(_source, _dest, _asset.id, "");
 
         } else if (_asset.category == Category.ERC1155) {
             IERC1155(_asset.assetAddress).safeTransferFrom(_source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, "");
@@ -83,28 +89,30 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * transferAssetCalldata
-     * @dev wrapping function for transfer calldata on various token interfaces
-     * @param _asset Struct defining all necessary context of a token
-     * @param _source Account/address that should initiate the transfer
-     * @param _dest Destination address
+     * transferAssetFromCalldata
+     * @dev Wrapping function for `transferFrom` calladata on various token interfaces.
+     *      If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
+     * @param _asset Struct defining all necessary context of a token.
+     * @param _source Account/address that provided the allowance.
+     * @param _dest Destination address.
      */
-    function transferAssetCalldata(Asset memory _asset, address _source, address _dest) pure internal returns (bytes memory) {
-        return _transferAssetFromCalldata(true, _asset, _source, _dest);
+    function transferAssetFromCalldata(Asset memory _asset, address _source, address _dest, bool fromSender) pure internal returns (bytes memory) {
+        return _transferAssetFromCalldata(_asset, _source, _dest, fromSender, false);
     }
 
     /**
-     * transferAssetFromCalldata
-     * @dev wrapping function for transferFrom calladata on various token interfaces
-     * @param _asset Struct defining all necessary context of a token
-     * @param _source Account/address that provided the allowance
-     * @param _dest Destination address
+     * safeTransferAssetFromCalldata
+     * @dev Wrapping function for `safeTransferFrom` calladata on various token interfaces.
+     *      If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
+     * @param _asset Struct defining all necessary context of a token.
+     * @param _source Account/address that provided the allowance.
+     * @param _dest Destination address.
      */
-    function transferAssetFromCalldata(Asset memory _asset, address _source, address _dest) pure internal returns (bytes memory) {
-        return _transferAssetFromCalldata(false, _asset, _source, _dest);
+    function safeTransferAssetFromCalldata(Asset memory _asset, address _source, address _dest, bool fromSender) pure internal returns (bytes memory) {
+        return _transferAssetFromCalldata(_asset, _source, _dest, fromSender, true);
     }
 
-    function _transferAssetFromCalldata(bool fromSender, Asset memory _asset, address _source, address _dest) pure private returns (bytes memory) {
+    function _transferAssetFromCalldata(Asset memory _asset, address _source, address _dest, bool fromSender, bool isSafe) pure private returns (bytes memory) {
         if (_asset.category == Category.ERC20) {
             if (fromSender) {
                 return abi.encodeWithSelector(
@@ -118,17 +126,23 @@ library MultiToken {
                 );
             }
         } else if (_asset.category == Category.ERC721) {
-            return abi.encodeWithSignature(
-                "safeTransferFrom(address,address,uint256)",
-                _source, _dest, _asset.id
-            );
+            if (!isSafe) {
+                return abi.encodeWithSignature(
+                    "transferFrom(address,address,uint256)",
+                    _source, _dest, _asset.id
+                );
+            } else {
+                return abi.encodeWithSignature(
+                    "safeTransferFrom(address,address,uint256,bytes)",
+                    _source, _dest, _asset.id, ""
+                );
+            }
 
         } else if (_asset.category == Category.ERC1155) {
             return abi.encodeWithSelector(
                 IERC1155.safeTransferFrom.selector,
                 _source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, ""
             );
-
 
         } else {
             revert("MultiToken: Unsupported category");
@@ -142,10 +156,10 @@ library MultiToken {
 
     /**
      * permit
-     * @dev wrapping function for granting approval via permit signature
-     * @param _asset Struct defining all necessary context of a token
-     * @param _owner Account/address that signed the permit
-     * @param _spender Account/address that would be granted approval to `_asset`
+     * @dev Wrapping function for granting approval via permit signature.
+     * @param _asset Struct defining all necessary context of a token.
+     * @param _owner Account/address that signed the permit.
+     * @param _spender Account/address that would be granted approval to `_asset`.
      * @param _permit Data about permit deadline (uint256) and permit signature (64/65 bytes).
      * Deadline and signature should be pack encoded together.
      * Signature can be standard (65 bytes) or compact (64 bytes) defined in EIP-2098.
@@ -203,9 +217,9 @@ library MultiToken {
 
     /**
      * balanceOf
-     * @dev wrapping function for checking balances on various token interfaces
-     * @param _asset Struct defining all necessary context of a token
-     * @param _target Target address to be checked
+     * @dev Wrapping function for checking balances on various token interfaces.
+     * @param _asset Struct defining all necessary context of a token.
+     * @param _target Target address to be checked.
      */
     function balanceOf(Asset memory _asset, address _target) internal view returns (uint256) {
         if (_asset.category == Category.ERC20) {
@@ -233,9 +247,9 @@ library MultiToken {
 
     /**
      * approveAsset
-     * @dev wrapping function for approve calls on various token interfaces
-     * @param _asset Struct defining all necessary context of a token
-     * @param _target Account/address that would be granted approval to `_asset`
+     * @dev Wrapping function for approve calls on various token interfaces.
+     * @param _asset Struct defining all necessary context of a token.
+     * @param _target Account/address that would be granted approval to `_asset`.
      */
     function approveAsset(Asset memory _asset, address _target) internal {
         if (_asset.category == Category.ERC20) {
@@ -259,10 +273,10 @@ library MultiToken {
 
     /**
      * isValid
-     * @dev checks that assets amount and id is valid in stated category
-     * @dev this function don't check that stated category is indeed the category of a contract on a stated address
-     * @param _asset Asset that is examined
-     * @return True if assets amount and id is valid in stated category
+     * @dev Checks that assets amount and id is valid in stated category.
+     *      This function don't check that stated category is indeed the category of a contract on a stated address.
+     * @param _asset Asset that is examined.
+     * @return True if assets amount and id is valid in stated category.
      */
     function isValid(Asset memory _asset) internal pure returns (bool) {
         // ERC20 token has to have id set to 0
@@ -282,10 +296,10 @@ library MultiToken {
 
     /**
      * isSameAs
-     * @dev compare two assets, ignoring their amounts
-     * @param _asset First asset to examine
-     * @param _otherAsset Second asset to examine
-     * @return True if both structs represents the same asset
+     * @dev Compare two assets, ignoring their amounts.
+     * @param _asset First asset to examine.
+     * @param _otherAsset Second asset to examine.
+     * @return True if both structs represents the same asset.
      */
     function isSameAs(Asset memory _asset, Asset memory _otherAsset) internal pure returns (bool) {
         return
