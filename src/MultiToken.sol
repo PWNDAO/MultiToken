@@ -6,6 +6,8 @@ import "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
 import "openzeppelin-contracts/contracts/interfaces/IERC1155.sol";
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 
+import "./interfaces/ICryptoKitties.sol";
+
 
 library MultiToken {
 
@@ -16,7 +18,8 @@ library MultiToken {
     enum Category {
         ERC20,
         ERC721,
-        ERC1155
+        ERC1155,
+        CryptoKitties
     }
 
     /**
@@ -77,6 +80,9 @@ library MultiToken {
 
         } else if (_asset.category == Category.ERC1155) {
             IERC1155(_asset.assetAddress).safeTransferFrom(_source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, "");
+
+        } else if (_asset.category == Category.CryptoKitties) {
+            ICryptoKitties(_asset.assetAddress).transferFrom(_source, _dest, _asset.id);
 
         } else {
             revert("MultiToken: Unsupported category");
@@ -142,6 +148,12 @@ library MultiToken {
             return abi.encodeWithSignature(
                 "safeTransferFrom(address,address,uint256,uint256,bytes)",
                 _source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, ""
+            );
+
+        } else if (_asset.category == Category.CryptoKitties) {
+            return abi.encodeWithSignature(
+                "transferFrom(address,address,uint256)",
+                _source, _dest, _asset.id
             );
 
         } else {
@@ -226,14 +238,13 @@ library MultiToken {
             return IERC20(_asset.assetAddress).balanceOf(_target);
 
         } else if (_asset.category == Category.ERC721) {
-            if (IERC721(_asset.assetAddress).ownerOf(_asset.id) == _target) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return IERC721(_asset.assetAddress).ownerOf(_asset.id) == _target ? 1 : 0;
 
         } else if (_asset.category == Category.ERC1155) {
             return IERC1155(_asset.assetAddress).balanceOf(_target, _asset.id);
+
+        } else if (_asset.category == Category.CryptoKitties) {
+            return ICryptoKitties(_asset.assetAddress).ownerOf(_asset.id) == _target ? 1 : 0;
 
         } else {
             revert("MultiToken: Unsupported category");
@@ -261,6 +272,9 @@ library MultiToken {
         } else if (_asset.category == Category.ERC1155) {
             IERC1155(_asset.assetAddress).setApprovalForAll(_target, true);
 
+        } else if (_asset.category == Category.CryptoKitties) {
+            ICryptoKitties(_asset.assetAddress).approve(_target, _asset.id);
+
         } else {
             revert("MultiToken: Unsupported category");
         }
@@ -284,7 +298,7 @@ library MultiToken {
             return false;
 
         // ERC721 token has to have amount set to 1
-        if (_asset.category == Category.ERC721 && _asset.amount != 1)
+        if ((_asset.category == Category.ERC721 || _asset.category == Category.CryptoKitties) && _asset.amount != 1)
             return false;
 
         // Any categories have to have non-zero amount

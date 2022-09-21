@@ -2,10 +2,13 @@
 pragma solidity 0.8.16;
 
 import "forge-std/Test.sol";
+
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
 import "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
 import "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
 import "openzeppelin-contracts/contracts/interfaces/IERC1155.sol";
+
+import "../src/interfaces/ICryptoKitties.sol";
 import "../src/MultiToken.sol";
 
 
@@ -91,6 +94,18 @@ contract MultiToken_TransferAssetFrom_Test is Test {
 		);
 		MultiToken.transferAssetFrom(
 			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0),
+			source,
+			recipient
+		);
+	}
+
+	function test_shouldCallTransferFrom_whenCryptoKitties() external {
+		vm.expectCall(
+			token,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
+		);
+		MultiToken.transferAssetFrom(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
 			source,
 			recipient
 		);
@@ -186,6 +201,18 @@ contract MultiToken_SafeTransferAssetFrom_Test is Test {
 		);
 	}
 
+	function test_shouldCallTransferFrom_whenCryptoKitties() external {
+		vm.expectCall(
+			token,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
+		);
+		MultiToken.safeTransferAssetFrom(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
+			source,
+			recipient
+		);
+	}
+
 }
 
 
@@ -272,6 +299,20 @@ contract MultiToken_TransferAssetFromCalldata_Test is Test {
 		);
 	}
 
+	function test_shouldReturnTransferFromCalldata_whenCryptoKitties() external {
+		bytes memory _calldata = MultiToken.transferAssetFromCalldata(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
+			source,
+			recipient,
+			false
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
+		);
+	}
+
 }
 
 
@@ -355,6 +396,20 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is Test {
 		assertEq(
 			_calldata,
 			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, 1, "")
+		);
+	}
+
+	function test_shouldReturnTransferFromCalldata_whenCryptoKitties() external {
+		bytes memory _calldata = MultiToken.safeTransferAssetFromCalldata(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
+			source,
+			recipient,
+			false
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
 		);
 	}
 
@@ -578,6 +633,52 @@ contract MultiToken_BalanceOf_Test is Test {
 		assertEq(balance, balanceMock);
 	}
 
+	function test_shouldReturnOne_whenCryptoKittiesOwner() external {
+		ICryptoKitties token = ICryptoKitties(address(0xa66e7));
+		address target = address(0xb0b);
+		uint256 id = 8765678;
+
+		vm.etch(address(token), bytes("0x01"));
+		vm.mockCall(
+			address(token),
+			abi.encodeWithSelector(token.ownerOf.selector),
+			abi.encode(target)
+		);
+
+		vm.expectCall(
+			address(token),
+			abi.encodeWithSelector(token.ownerOf.selector, id)
+		);
+		uint256 balance = MultiToken.balanceOf(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(token), id, 1),
+			target
+		);
+		assertEq(balance, 1);
+	}
+
+	function test_shouldReturnZero_whenNotCryptoKittiesOwner() external {
+		ICryptoKitties token = ICryptoKitties(address(0xa66e7));
+		address target = address(0xb0b);
+		uint256 id = 8765678;
+
+		vm.etch(address(token), bytes("0x01"));
+		vm.mockCall(
+			address(token),
+			abi.encodeWithSelector(token.ownerOf.selector),
+			abi.encode(address(0xffff))
+		);
+
+		vm.expectCall(
+			address(token),
+			abi.encodeWithSelector(token.ownerOf.selector, id)
+		);
+		uint256 balance = MultiToken.balanceOf(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(token), id, 1),
+			target
+		);
+		assertEq(balance, 0);
+	}
+
 }
 
 
@@ -644,6 +745,23 @@ contract MultiToken_ApproveAsset_Test is Test {
 		);
 	}
 
+	function test_shouldCallApprove_whenCryptoKitties() external {
+		ICryptoKitties token = ICryptoKitties(address(0xa66e7));
+		address recipient = address(0xb0b);
+		uint256 id = 9973;
+
+		vm.etch(address(token), bytes("0x01"));
+
+		vm.expectCall(
+			address(token),
+			abi.encodeWithSelector(token.approve.selector, recipient, id)
+		);
+		MultiToken.approveAsset(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(token), id, 1),
+			recipient
+		);
+	}
+
 }
 
 
@@ -685,6 +803,22 @@ contract MultiToken_IsValid_Test is Test {
 		assertEq(isValid, false);
 	}
 
+	function test_shouldFail_whenCryptoKittiesWithZeroAmount() external {
+		bool isValid = MultiToken.isValid(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 0)
+		);
+
+		assertEq(isValid, false);
+	}
+
+	function test_shouldFail_whenCryptoKittiesWithAmountBiggerThan1() external {
+		bool isValid = MultiToken.isValid(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 2)
+		);
+
+		assertEq(isValid, false);
+	}
+
 	function test_shouldFail_whenERC1155WithZeroAmount() external {
 		bool isValid = MultiToken.isValid(
 			MultiToken.Asset(MultiToken.Category.ERC1155, address(0xa66e7), 323, 0)
@@ -712,6 +846,14 @@ contract MultiToken_IsValid_Test is Test {
 	function test_shouldPass_whenValidERC1155() external {
 		bool isValid = MultiToken.isValid(
 			MultiToken.Asset(MultiToken.Category.ERC1155, address(0xa66e7), 323, 213)
+		);
+
+		assertEq(isValid, true);
+	}
+
+	function test_shouldPass_whenValidCryptoKitties() external {
+		bool isValid = MultiToken.isValid(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 1)
 		);
 
 		assertEq(isValid, true);
