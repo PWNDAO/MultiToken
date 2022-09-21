@@ -540,142 +540,129 @@ contract MultiToken_Permit_Test is Test {
 
 contract MultiToken_BalanceOf_Test is Test {
 
-	function test_shouldReturnBalance_whenERC20() external {
-		IERC20 token = IERC20(address(0xa66e7));
-		address target = address(0xb0b);
-		uint256 balanceMock = 101e18;
+	address token = address(0xa66e7);
+	address target = address(0xb0b);
+	uint256 id = 8765678;
+	uint256 balanceMock = 101e18;
 
-		vm.etch(address(token), bytes("0x01"));
+
+	function test_shouldReturnBalance_whenERC20() external {
+		vm.etch(token, bytes("0x01"));
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.balanceOf.selector),
+			token,
+			abi.encodeWithSelector(IERC20.balanceOf.selector),
 			abi.encode(balanceMock)
 		);
 
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.balanceOf.selector, target)
+			token,
+			abi.encodeWithSelector(IERC20.balanceOf.selector, target)
 		);
 		uint256 balance = MultiToken.balanceOf(
-			MultiToken.Asset(MultiToken.Category.ERC20, address(token), 0, 10e18),
+			MultiToken.Asset(MultiToken.Category.ERC20, token, 0, 10e18),
 			target
 		);
+
 		assertEq(balance, balanceMock);
 	}
 
 	function test_shouldReturnOne_whenERC721Owner() external {
-		IERC721 token = IERC721(address(0xa66e7));
-		address target = address(0xb0b);
-		uint256 id = 8765678;
-
-		vm.etch(address(token), bytes("0x01"));
+		vm.etch(token, bytes("0x01"));
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.ownerOf.selector),
+			token,
+			abi.encodeWithSelector(IERC721.ownerOf.selector),
 			abi.encode(target)
 		);
 
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.ownerOf.selector, id)
+			token,
+			abi.encodeWithSelector(IERC721.ownerOf.selector, id)
 		);
 		uint256 balance = MultiToken.balanceOf(
-			MultiToken.Asset(MultiToken.Category.ERC721, address(token), id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
 			target
 		);
+
 		assertEq(balance, 1);
 	}
 
 	function test_shouldReturnZero_whenNotERC721Owner() external {
-		IERC721 token = IERC721(address(0xa66e7));
-		address target = address(0xb0b);
-		uint256 id = 8765678;
-
-		vm.etch(address(token), bytes("0x01"));
+		vm.etch(token, bytes("0x01"));
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.ownerOf.selector),
+			token,
+			abi.encodeWithSelector(IERC721.ownerOf.selector),
 			abi.encode(address(0xffff))
 		);
 
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.ownerOf.selector, id)
+			token,
+			abi.encodeWithSelector(IERC721.ownerOf.selector, id)
 		);
 		uint256 balance = MultiToken.balanceOf(
-			MultiToken.Asset(MultiToken.Category.ERC721, address(token), id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
 			target
 		);
+
 		assertEq(balance, 0);
 	}
 
 	function test_shouldReturnBalance_whenERC1155() external {
-		IERC1155 token = IERC1155(address(0xa66e7));
-		address target = address(0xb0b);
-		uint256 id = 330022;
-		uint256 balanceMock = 101e18;
-
-		vm.etch(address(token), bytes("0x01"));
+		vm.etch(token, bytes("0x01"));
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.balanceOf.selector),
+			token,
+			abi.encodeWithSelector(IERC1155.balanceOf.selector),
 			abi.encode(balanceMock)
 		);
 
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.balanceOf.selector, target, id)
+			token,
+			abi.encodeWithSelector(IERC1155.balanceOf.selector, target, id)
 		);
 		uint256 balance = MultiToken.balanceOf(
-			MultiToken.Asset(MultiToken.Category.ERC1155, address(token), id, 10e18),
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 10e18),
 			target
 		);
+
 		assertEq(balance, balanceMock);
 	}
 
 	function test_shouldReturnOne_whenCryptoKittiesOwner() external {
-		ICryptoKitties token = ICryptoKitties(address(0xa66e7));
-		address target = address(0xb0b);
-		uint256 id = 8765678;
-
-		vm.etch(address(token), bytes("0x01"));
+		vm.etch(token, bytes("0x01"));
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.ownerOf.selector),
+			token,
+			abi.encodeWithSelector(ICryptoKitties.ownerOf.selector),
 			abi.encode(target)
 		);
 
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.ownerOf.selector, id)
+			token,
+			abi.encodeWithSelector(ICryptoKitties.ownerOf.selector, id)
 		);
 		uint256 balance = MultiToken.balanceOf(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(token), id, 1),
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
 			target
 		);
+
 		assertEq(balance, 1);
 	}
 
 	function test_shouldReturnZero_whenNotCryptoKittiesOwner() external {
-		ICryptoKitties token = ICryptoKitties(address(0xa66e7));
-		address target = address(0xb0b);
-		uint256 id = 8765678;
-
-		vm.etch(address(token), bytes("0x01"));
+		vm.etch(token, bytes("0x01"));
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.ownerOf.selector),
+			token,
+			abi.encodeWithSelector(ICryptoKitties.ownerOf.selector),
 			abi.encode(address(0xffff))
 		);
 
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.ownerOf.selector, id)
+			token,
+			abi.encodeWithSelector(ICryptoKitties.ownerOf.selector, id)
 		);
 		uint256 balance = MultiToken.balanceOf(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(token), id, 1),
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
 			target
 		);
+
 		assertEq(balance, 0);
 	}
 
@@ -688,76 +675,62 @@ contract MultiToken_BalanceOf_Test is Test {
 
 contract MultiToken_ApproveAsset_Test is Test {
 
-	function test_shouldCallApprove_whenERC20() external {
-		IERC20 token = IERC20(address(0xa66e7));
-		address recipient = address(0xb0b);
-		uint256 amount = 101e18;
+	address token = address(0xa66e7);
+	address recipient = address(0xb0b);
+	uint256 id = 9973;
+	uint256 amount = 101e18;
 
-		vm.etch(address(token), bytes("0x01"));
+	constructor() {
+		vm.etch(token, bytes("0x01"));
+	}
+
+
+	function test_shouldCallApprove_whenERC20() external {
 		vm.mockCall(
-			address(token),
-			abi.encodeWithSelector(token.approve.selector),
+			token,
+			abi.encodeWithSelector(IERC20.approve.selector),
 			abi.encode(true)
 		);
 
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.approve.selector, recipient, amount)
+			token,
+			abi.encodeWithSelector(IERC20.approve.selector, recipient, amount)
 		);
 		MultiToken.approveAsset(
-			MultiToken.Asset(MultiToken.Category.ERC20, address(token), 0, amount),
+			MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount),
 			recipient
 		);
 	}
 
 	function test_shouldCallApprove_whenERC721() external {
-		IERC721 token = IERC721(address(0xa66e7));
-		address recipient = address(0xb0b);
-		uint256 id = 9973;
-
-		vm.etch(address(token), bytes("0x01"));
-
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.approve.selector, recipient, id)
+			token,
+			abi.encodeWithSelector(IERC721.approve.selector, recipient, id)
 		);
 		MultiToken.approveAsset(
-			MultiToken.Asset(MultiToken.Category.ERC721, address(token), id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
 			recipient
 		);
 	}
 
 	function test_shouldCallSetApprovalForAll_whenERC1155() external {
-		IERC721 token = IERC721(address(0xa66e7));
-		address recipient = address(0xb0b);
-		uint256 id = 9973;
-		uint256 amount = 333e18;
-
-		vm.etch(address(token), bytes("0x01"));
-
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.setApprovalForAll.selector, recipient, true)
+			token,
+			abi.encodeWithSelector(IERC1155.setApprovalForAll.selector, recipient, true)
 		);
 		MultiToken.approveAsset(
-			MultiToken.Asset(MultiToken.Category.ERC1155, address(token), id, amount),
+			MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount),
 			recipient
 		);
 	}
 
 	function test_shouldCallApprove_whenCryptoKitties() external {
-		ICryptoKitties token = ICryptoKitties(address(0xa66e7));
-		address recipient = address(0xb0b);
-		uint256 id = 9973;
-
-		vm.etch(address(token), bytes("0x01"));
-
 		vm.expectCall(
-			address(token),
-			abi.encodeWithSelector(token.approve.selector, recipient, id)
+			token,
+			abi.encodeWithSelector(ICryptoKitties.approve.selector, recipient, id)
 		);
 		MultiToken.approveAsset(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(token), id, 1),
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
 			recipient
 		);
 	}
