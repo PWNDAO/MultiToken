@@ -115,13 +115,13 @@ library MultiToken {
     function _transferAssetFromCalldata(Asset memory _asset, address _source, address _dest, bool fromSender, bool isSafe) pure private returns (bytes memory) {
         if (_asset.category == Category.ERC20) {
             if (fromSender) {
-                return abi.encodeWithSelector(
-                    IERC20.transfer.selector,
+                return abi.encodeWithSignature(
+                    "transfer(address,uint256)",
                     _dest, _asset.amount
                 );
             } else {
-                return abi.encodeWithSelector(
-                    IERC20.transferFrom.selector,
+                return abi.encodeWithSignature(
+                    "transferFrom(address,address,uint256)",
                     _source, _dest, _asset.amount
                 );
             }
@@ -139,8 +139,8 @@ library MultiToken {
             }
 
         } else if (_asset.category == Category.ERC1155) {
-            return abi.encodeWithSelector(
-                IERC1155.safeTransferFrom.selector,
+            return abi.encodeWithSignature(
+                "safeTransferFrom(address,address,uint256,uint256,bytes)",
                 _source, _dest, _asset.id, _asset.amount == 0 ? 1 : _asset.amount, ""
             );
 
