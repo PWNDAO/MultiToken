@@ -1,10 +1,7 @@
 {
   "name": "@pwnfinance/multitoken",
-  "version": "1.1.0",
-  "description": "Solidity library unifying ERC20, ERC721 &amp; ERC1155 transfers by wrapping them into MultiToken Asset struct.",
-  "scripts": {
-    "test": "npx hardhat test"
-  },
+  "version": "2.0.0",
+  "description": "Solidity library unifying ERC20, ERC721, ERC1155 &amp; CryptoKitties transfers by wrapping them into MultiToken Asset struct.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/PWNFinance/MultiToken.git"
@@ -16,22 +13,13 @@
     "ERC"
   ],
   "files": [
-    "contracts/MultiToken.sol"
+    "src/interfaces/ICryptoKitties.sol",
+    "src/MultiToken.sol"
   ],
   "author": "PWN Finance",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/PWNFinance/MultiToken/issues"
   },
-  "homepage": "https://github.com/PWNFinance/MultiToken#readme",
-  "devDependencies": {
-    "@defi-wonderland/smock": "^2.0.7",
-    "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
-    "@openzeppelin/contracts": "^4.3.2",
-    "chai": "^4.3.4",
-    "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.5.1",
-    "hardhat": "^2.8.4"
-  }
+  "homepage": "https://github.com/PWNFinance/MultiToken#readme"
 }
