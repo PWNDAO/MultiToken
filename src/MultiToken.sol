@@ -291,12 +291,8 @@ library MultiToken {
         if (asset.category == Category.ERC20 && asset.id != 0)
             return false;
 
-        // ERC721 token has to have amount set to 1
-        if ((asset.category == Category.ERC721 || asset.category == Category.CryptoKitties) && asset.amount != 1)
-            return false;
-
-        // Any categories have to have non-zero amount
-        if (asset.amount == 0)
+        // ERC721 & CryptoKitties token has to have amount set to 0
+        if ((asset.category == Category.ERC721 || asset.category == Category.CryptoKitties) && asset.amount != 0)
             return false;
 
         return true;

@@ -752,49 +752,33 @@ contract MultiToken_IsValid_Test is Test {
 		assertEq(isValid, false);
 	}
 
-	function test_shouldFail_whenERC20WithZeroAmount() external {
+	function test_shouldPass_whenERC20WithZeroAmount() external {
 		bool isValid = MultiToken.isValid(
 			MultiToken.Asset(MultiToken.Category.ERC20, address(0xa66e7), 0, 0)
 		);
 
-		assertEq(isValid, false);
+		assertEq(isValid, true);
 	}
 
-	function test_shouldFail_whenERC721WithZeroAmount() external {
+	function test_shouldFail_whenERC721WithNonZeroAmount() external {
 		bool isValid = MultiToken.isValid(
-			MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 323, 0)
+			MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 323, 1)
 		);
 
 		assertEq(isValid, false);
 	}
 
-	function test_shouldFail_whenERC721WithAmountBiggerThan1() external {
-		bool isValid = MultiToken.isValid(
-			MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 323, 2)
-		);
-
-		assertEq(isValid, false);
-	}
-
-	function test_shouldFail_whenCryptoKittiesWithZeroAmount() external {
-		bool isValid = MultiToken.isValid(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 0)
-		);
-
-		assertEq(isValid, false);
-	}
-
-	function test_shouldFail_whenCryptoKittiesWithAmountBiggerThan1() external {
-		bool isValid = MultiToken.isValid(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 2)
-		);
-
-		assertEq(isValid, false);
-	}
-
-	function test_shouldFail_whenERC1155WithZeroAmount() external {
+	function test_shouldPass_whenERC1155WithZeroAmount() external {
 		bool isValid = MultiToken.isValid(
 			MultiToken.Asset(MultiToken.Category.ERC1155, address(0xa66e7), 323, 0)
+		);
+
+		assertEq(isValid, true);
+	}
+
+	function test_shouldFail_whenCryptoKittiesWithNonZeroAmount() external {
+		bool isValid = MultiToken.isValid(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 1)
 		);
 
 		assertEq(isValid, false);
@@ -810,7 +794,7 @@ contract MultiToken_IsValid_Test is Test {
 
 	function test_shouldPass_whenValidERC721() external {
 		bool isValid = MultiToken.isValid(
-			MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 323, 1)
+			MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 323, 0)
 		);
 
 		assertEq(isValid, true);
@@ -826,7 +810,7 @@ contract MultiToken_IsValid_Test is Test {
 
 	function test_shouldPass_whenValidCryptoKitties() external {
 		bool isValid = MultiToken.isValid(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 1)
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 0)
 		);
 
 		assertEq(isValid, true);
