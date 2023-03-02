@@ -82,7 +82,10 @@ library MultiToken {
             IERC1155(asset.assetAddress).safeTransferFrom(source, dest, asset.id, asset.amount == 0 ? 1 : asset.amount, "");
 
         } else if (asset.category == Category.CryptoKitties) {
-            ICryptoKitties(asset.assetAddress).transferFrom(source, dest, asset.id);
+            if (source == address(this))
+                ICryptoKitties(asset.assetAddress).transfer(dest, asset.id);
+            else
+                ICryptoKitties(asset.assetAddress).transferFrom(source, dest, asset.id);
 
         } else {
             revert("MultiToken: Unsupported category");
@@ -146,9 +149,15 @@ library MultiToken {
             );
 
         } else if (asset.category == Category.CryptoKitties) {
-            return abi.encodeWithSignature(
-                "transferFrom(address,address,uint256)", source, dest, asset.id
-            );
+            if (fromSender) {
+                return abi.encodeWithSignature(
+                    "transfer(address,uint256)", dest, asset.id
+                );
+            } else {
+                return abi.encodeWithSignature(
+                    "transferFrom(address,address,uint256)", source, dest, asset.id
+                );
+            }
 
         } else {
             revert("MultiToken: Unsupported category");

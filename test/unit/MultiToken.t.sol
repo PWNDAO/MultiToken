@@ -69,7 +69,7 @@ contract MultiToken_TransferAssetFrom_Test is Test {
 			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
 		);
 		MultiToken.transferAssetFrom(
-			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0),
 			source,
 			recipient
 		);
@@ -99,13 +99,25 @@ contract MultiToken_TransferAssetFrom_Test is Test {
 		);
 	}
 
-	function test_shouldCallTransferFrom_whenCryptoKitties() external {
+	function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsThis() external {
+		vm.expectCall(
+			token,
+			abi.encodeWithSignature("transfer(address,uint256)", recipient, id)
+		);
+		MultiToken.transferAssetFrom(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0),
+			address(this),
+			recipient
+		);
+	}
+
+	function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsNotThis() external {
 		vm.expectCall(
 			token,
 			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
 		);
 		MultiToken.transferAssetFrom(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0),
 			source,
 			recipient
 		);
@@ -171,7 +183,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is Test {
 			abi.encodeWithSignature("safeTransferFrom(address,address,uint256,bytes)", source, recipient, id, "")
 		);
 		MultiToken.safeTransferAssetFrom(
-			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0),
 			source,
 			recipient
 		);
@@ -201,13 +213,25 @@ contract MultiToken_SafeTransferAssetFrom_Test is Test {
 		);
 	}
 
-	function test_shouldCallTransferFrom_whenCryptoKitties() external {
+	function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsThis() external {
+		vm.expectCall(
+			token,
+			abi.encodeWithSignature("transfer(address,uint256)", recipient, id)
+		);
+		MultiToken.safeTransferAssetFrom(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0),
+			address(this),
+			recipient
+		);
+	}
+
+	function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsNotThis() external {
 		vm.expectCall(
 			token,
 			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
 		);
 		MultiToken.safeTransferAssetFrom(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0),
 			source,
 			recipient
 		);
@@ -259,7 +283,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is Test {
 
 	function test_shouldReturnTransferFromCalldata_whenERC721() external {
 		bytes memory _calldata = MultiToken.transferAssetFromCalldata(
-			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0),
 			source,
 			recipient,
 			false
@@ -299,9 +323,23 @@ contract MultiToken_TransferAssetFromCalldata_Test is Test {
 		);
 	}
 
-	function test_shouldReturnTransferFromCalldata_whenCryptoKitties() external {
+	function test_shouldReturnTransferFromCalldata_whenCryptoKitties_whenFromSender() external {
 		bytes memory _calldata = MultiToken.transferAssetFromCalldata(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0),
+			address(this),
+			recipient,
+			true
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("transfer(address,uint256)", recipient, id)
+		);
+	}
+
+	function test_shouldReturnTransferFromCalldata_whenCryptoKitties_whenNotFromSender() external {
+		bytes memory _calldata = MultiToken.transferAssetFromCalldata(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0),
 			source,
 			recipient,
 			false
@@ -359,7 +397,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is Test {
 
 	function test_shouldReturnSafeTransferFromCalldata_whenERC721() external {
 		bytes memory _calldata = MultiToken.safeTransferAssetFromCalldata(
-			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1),
+			MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0),
 			source,
 			recipient,
 			false
@@ -399,9 +437,23 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is Test {
 		);
 	}
 
-	function test_shouldReturnTransferFromCalldata_whenCryptoKitties() external {
+	function test_shouldReturnTransferFromCalldata_whenCryptoKitties_whenFromSender() external {
 		bytes memory _calldata = MultiToken.safeTransferAssetFromCalldata(
-			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1),
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0),
+			address(this),
+			recipient,
+			true
+		);
+
+		assertEq(
+			_calldata,
+			abi.encodeWithSignature("transfer(address,uint256)", recipient, id)
+		);
+	}
+
+	function test_shouldReturnTransferFromCalldata_whenCryptoKitties_whenNotFromSender() external {
+		bytes memory _calldata = MultiToken.safeTransferAssetFromCalldata(
+			MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0),
 			source,
 			recipient,
 			false
