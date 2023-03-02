@@ -3,13 +3,13 @@ pragma solidity 0.8.16;
 
 import "forge-std/Test.sol";
 
-import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
-import "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
-import "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
-import "openzeppelin-contracts/contracts/interfaces/IERC1155.sol";
+import "@openzeppelin/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "@openzeppelin/interfaces/IERC20.sol";
+import "@openzeppelin/interfaces/IERC721.sol";
+import "@openzeppelin/interfaces/IERC1155.sol";
 
-import "../src/interfaces/ICryptoKitties.sol";
-import "../src/MultiToken.sol";
+import "@MT/interfaces/ICryptoKitties.sol";
+import "@MT/MultiToken.sol";
 
 
 /*----------------------------------------------------------*|

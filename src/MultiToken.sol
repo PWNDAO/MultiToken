@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
-import "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
-import "openzeppelin-contracts/contracts/interfaces/IERC1155.sol";
-import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "@openzeppelin/interfaces/IERC20.sol";
+import "@openzeppelin/interfaces/IERC721.sol";
+import "@openzeppelin/interfaces/IERC1155.sol";
+import "@openzeppelin/token/ERC20/extensions/draft-IERC20Permit.sol";
 
-import "./interfaces/ICryptoKitties.sol";
+import "@MT/interfaces/ICryptoKitties.sol";
 
 
 library MultiToken {
