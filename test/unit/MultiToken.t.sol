@@ -688,56 +688,178 @@ contract MultiToken_ApproveAsset_Test is MultiTokenTest {
 contract MultiToken_IsValid_Test is MultiTokenTest {
 	using MultiToken for MultiToken.Asset;
 
+	function _mockERC165Token(address _token) private {
+		vm.mockCall(
+			_token,
+			abi.encodeWithSignature("supportsInterface(bytes4)", bytes4(0x01ffc9a7)), // InterfaceId_ERC165
+			abi.encode(true)
+		);
+		vm.mockCall(
+			_token,
+			abi.encodeWithSignature("supportsInterface(bytes4)", bytes4(0xffffffff)), // InterfaceId_Invalid
+			abi.encode(false)
+		);
+	}
+
+	function _mockERC20Token(address _token) private {
+		// No need to mock any call
+	}
+
+	function _mockERC721Token(address _token) private {
+		_mockERC165Token(_token);
+
+		vm.mockCall(
+			_token,
+			abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.ERC721_INTERFACE_ID),
+			abi.encode(true)
+		);
+	}
+
+	function _mockERC1155Token(address _token) private {
+		_mockERC165Token(_token);
+
+		vm.mockCall(
+			_token,
+			abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.ERC1155_INTERFACE_ID),
+			abi.encode(true)
+		);
+	}
+
+	function _mockCryptoKittiesToken(address _token) private {
+		_mockERC165Token(_token);
+
+		vm.mockCall(
+			_token,
+			abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.CRYPTO_KITTIES_INTERFACE_ID),
+			abi.encode(true)
+		);
+	}
+
+
+	// ERC20
+
 	function test_shouldFail_whenERC20WithNonZeroId() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, address(0xa66e7), 6362, 100e18).isValid();
+		_mockERC20Token(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, id, amount).isValid();
 
 		assertEq(isValid, false);
 	}
 
-	function test_shouldPass_whenERC20WithZeroAmount() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, address(0xa66e7), 0, 0).isValid();
+	function test_shouldFail_whenSupportingERC721Interface() external {
+		_mockERC721Token(token);
 
-		assertEq(isValid, true);
-	}
-
-	function test_shouldFail_whenERC721WithNonZeroAmount() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 323, 1).isValid();
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();
 
 		assertEq(isValid, false);
 	}
 
-	function test_shouldPass_whenERC1155WithZeroAmount() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.ERC1155, address(0xa66e7), 323, 0).isValid();
+	function test_shouldFail_whenSupportingERC1155Interface() external {
+		_mockERC1155Token(token);
 
-		assertEq(isValid, true);
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();
+
+		assertEq(isValid, false);
 	}
 
-	function test_shouldFail_whenCryptoKittiesWithNonZeroAmount() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 1).isValid();
+	function test_shouldFail_whenSupportingCryptoKittiesInterface() external {
+		_mockCryptoKittiesToken(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();
 
 		assertEq(isValid, false);
 	}
 
 	function test_shouldPass_whenValidERC20() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, address(0xa66e7), 0, 213).isValid();
+		_mockERC20Token(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();
 
 		assertEq(isValid, true);
+	}
+
+	function test_shouldPass_whenERC20WithZeroAmount() external {
+		_mockERC20Token(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, 0).isValid();
+
+		assertEq(isValid, true);
+	}
+
+	// ERC721
+
+	function test_shouldFail_whenERC721WithNonZeroAmount() external {
+		_mockERC721Token(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC721, token, id, amount).isValid();
+
+		assertEq(isValid, false);
+	}
+
+	function test_shouldFail_whenNotSupportingERC721Interface() external {
+		// Not mocking ERC721 token
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0).isValid();
+
+		assertEq(isValid, false);
 	}
 
 	function test_shouldPass_whenValidERC721() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 323, 0).isValid();
+		_mockERC721Token(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0).isValid();
 
 		assertEq(isValid, true);
+	}
+
+	// ERC1155
+
+	function test_shouldFail_whenNotSupportingERC1155Interface() external {
+		// Not mocking ERC1155 token
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).isValid();
+
+		assertEq(isValid, false);
 	}
 
 	function test_shouldPass_whenValidERC1155() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.ERC1155, address(0xa66e7), 323, 213).isValid();
+		_mockERC1155Token(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).isValid();
 
 		assertEq(isValid, true);
 	}
 
+	function test_shouldPass_whenERC1155WithZeroAmount() external {
+		_mockERC1155Token(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0).isValid();
+
+		assertEq(isValid, true);
+	}
+
+	// CryptoKitties
+
+	function test_shouldFail_whenCryptoKittiesWithNonZeroAmount() external {
+		_mockCryptoKittiesToken(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, amount).isValid();
+
+		assertEq(isValid, false);
+	}
+
+	function test_shouldFail_whenNotSupportingCryptoKittiesInterface() external {
+		// Not mocking CryptoKitties token
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).isValid();
+
+		assertEq(isValid, false);
+	}
+
 	function test_shouldPass_whenValidCryptoKitties() external {
-		bool isValid = MultiToken.Asset(MultiToken.Category.CryptoKitties, address(0xa66e7), 323, 0).isValid();
+		_mockCryptoKittiesToken(token);
+
+		bool isValid = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).isValid();
 
 		assertEq(isValid, true);
 	}

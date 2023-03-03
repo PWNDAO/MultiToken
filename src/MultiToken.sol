@@ -5,11 +5,17 @@ import "@openzeppelin/interfaces/IERC20.sol";
 import "@openzeppelin/interfaces/IERC721.sol";
 import "@openzeppelin/interfaces/IERC1155.sol";
 import "@openzeppelin/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "@openzeppelin/utils/introspection/ERC165Checker.sol";
 
 import "@MT/interfaces/ICryptoKitties.sol";
 
 
 library MultiToken {
+    using ERC165Checker for address;
+
+    bytes4 public constant ERC721_INTERFACE_ID = 0x80ac58cd;
+    bytes4 public constant ERC1155_INTERFACE_ID = 0xd9b67a26;
+    bytes4 public constant CRYPTO_KITTIES_INTERFACE_ID = 0x9a20483d;
 
     /**
      * @title Category
@@ -290,21 +296,53 @@ library MultiToken {
 
     /**
      * isValid
-     * @dev Checks that assets amount and id is valid in stated category.
-     *      This function don't check that stated category is indeed the category of a contract on a stated address.
+     * @dev Checks that provided asset has correct format and stated category.
+     *      NFT (ERC721, CryptoKitties) tokens has to have amount = 0.
+     *      Fungible tokens (ERC20) has to have id = 0.
+     *      Correct asset category is determined via ERC165.
+     *      ERC20s category is accepted, if ERC165 check returns false for any other category as ERC20 doesn't implement ERC165.
+     *      The check assumes, that asset contract implements only one token standard at a time.
      * @param asset Asset that is examined.
      * @return True if assets amount and id is valid in stated category.
      */
-    function isValid(Asset memory asset) internal pure returns (bool) {
-        // ERC20 token has to have id set to 0
-        if (asset.category == Category.ERC20 && asset.id != 0)
-            return false;
+    function isValid(Asset memory asset) internal view returns (bool) {
+        if (asset.category == Category.ERC20) {
+            // Check format
+            if (asset.id != 0)
+                return false;
 
-        // ERC721 & CryptoKitties token has to have amount set to 0
-        if ((asset.category == Category.ERC721 || asset.category == Category.CryptoKitties) && asset.amount != 0)
-            return false;
+            // Check it's not ERC721 nor ERC1155 nor CryptoKitties via ERC165
+            bytes4[] memory interfaceIds = new bytes4[](3);
+            interfaceIds[0] = ERC721_INTERFACE_ID;
+            interfaceIds[1] = ERC1155_INTERFACE_ID;
+            interfaceIds[2] = CRYPTO_KITTIES_INTERFACE_ID;
+            bool[] memory supportedInterfaceIds = asset.assetAddress.getSupportedInterfaces(interfaceIds);
 
-        return true;
+            return !supportedInterfaceIds[0] && !supportedInterfaceIds[1] && !supportedInterfaceIds[2];
+
+        } else if (asset.category == Category.ERC721) {
+            // Check format
+            if (asset.amount != 0)
+                return false;
+
+            // Check it's ERC721 via ERC165
+            return asset.assetAddress.supportsInterface(ERC721_INTERFACE_ID);
+
+        } else if (asset.category == Category.ERC1155) {
+            // Check it's ERC1155 via ERC165
+            return asset.assetAddress.supportsInterface(ERC1155_INTERFACE_ID);
+
+        } else if (asset.category == Category.CryptoKitties) {
+            // Check format
+            if (asset.amount != 0)
+                return false;
+
+            // Check it's CryptoKitties via ERC165
+            return asset.assetAddress.supportsInterface(CRYPTO_KITTIES_INTERFACE_ID);
+
+        } else {
+            revert("MultiToken: Unsupported category");
+        }
     }
 
     /**
