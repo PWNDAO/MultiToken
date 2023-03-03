@@ -5,6 +5,7 @@ import "@openzeppelin/interfaces/IERC20.sol";
 import "@openzeppelin/interfaces/IERC721.sol";
 import "@openzeppelin/interfaces/IERC1155.sol";
 import "@openzeppelin/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/utils/introspection/ERC165Checker.sol";
 
 import "@MT/interfaces/ICryptoKitties.sol";
@@ -12,6 +13,7 @@ import "@MT/interfaces/ICryptoKitties.sol";
 
 library MultiToken {
     using ERC165Checker for address;
+    using SafeERC20 for IERC20;
 
     bytes4 public constant ERC721_INTERFACE_ID = 0x80ac58cd;
     bytes4 public constant ERC1155_INTERFACE_ID = 0xd9b67a26;
@@ -74,9 +76,9 @@ library MultiToken {
     function _transferAssetFrom(Asset memory asset, address source, address dest, bool isSafe) private {
         if (asset.category == Category.ERC20) {
             if (source == address(this))
-                require(IERC20(asset.assetAddress).transfer(dest, asset.amount), "MultiToken: ERC20 transfer failed");
+                IERC20(asset.assetAddress).safeTransfer(dest, asset.amount);
             else
-                require(IERC20(asset.assetAddress).transferFrom(source, dest, asset.amount), "MultiToken: ERC20 transferFrom failed");
+                IERC20(asset.assetAddress).safeTransferFrom(source, dest, asset.amount);
 
         } else if (asset.category == Category.ERC721) {
             if (!isSafe)

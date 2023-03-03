@@ -47,12 +47,39 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
 	}
 
 
+	// ERC20
+
 	function test_shouldCallTransfer_whenERC20_whenSourceIsThis() external {
 		vm.expectCall(
 			token,
 			abi.encodeWithSignature("transfer(address,uint256)", recipient, amount)
 		);
 		MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFrom({
+			source: address(this),
+			dest: recipient
+		});
+	}
+
+	// vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+	function testFail_shouldFail_whenERC20_whenSourceIsThis_whenTransferReturnsFalse() external {
+		vm.clearMockedCalls();
+		vm.mockCall(
+			token,
+			abi.encodeWithSignature("transfer(address,uint256)", recipient, amount),
+			abi.encode(false)
+		);
+
+		MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFrom({
+			source: address(this),
+			dest: recipient
+		});
+	}
+
+	// vm.expectRevert("Address: call to non-contract");
+	function testFail_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
+		address nonContractAddress = address(0xff22ff33);
+
+		MultiToken.Asset(MultiToken.Category.ERC20, nonContractAddress, 0, amount).transferAssetFrom({
 			source: address(this),
 			dest: recipient
 		});
@@ -69,6 +96,33 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
 		});
 	}
 
+	// vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+	function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenTransferReturnsFalse() external {
+		vm.clearMockedCalls();
+		vm.mockCall(
+			token,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, amount),
+			abi.encode(false)
+		);
+
+		MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFrom({
+			source: source,
+			dest: recipient
+		});
+	}
+
+	// vm.expectRevert("Address: call to non-contract");
+	function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenCallToNonContractAddress() external {
+		address nonContractAddress = address(0xff22ff33);
+
+		MultiToken.Asset(MultiToken.Category.ERC20, nonContractAddress, 0, amount).transferAssetFrom({
+			source: source,
+			dest: recipient
+		});
+	}
+
+	// ERC721
+
 	function test_shouldCallTransferFrom_whenERC721() external {
 		vm.expectCall(
 			token,
@@ -79,6 +133,8 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
 			dest: recipient
 		});
 	}
+
+	// ERC1155
 
 	function test_shouldCallSafeTransferFrom_whenERC1155() external {
 		vm.expectCall(
@@ -101,6 +157,8 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
 			dest: recipient
 		});
 	}
+
+	// CryptoKitties
 
 	function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsThis() external {
 		vm.expectCall(
@@ -148,12 +206,39 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
 	}
 
 
+	// ERC20
+
 	function test_shouldCallTransfer_whenERC20_whenSourceIsThis() external {
 		vm.expectCall(
 			token,
 			abi.encodeWithSignature("transfer(address,uint256)", recipient, amount)
 		);
 		MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFrom({
+			source: address(this),
+			dest: recipient
+		});
+	}
+
+	// vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+	function testFail_shouldFail_whenERC20_whenSourceIsThis_whenTransferReturnsFalse() external {
+		vm.clearMockedCalls();
+		vm.mockCall(
+			token,
+			abi.encodeWithSignature("transfer(address,uint256)", recipient, amount),
+			abi.encode(false)
+		);
+
+		MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFrom({
+			source: address(this),
+			dest: recipient
+		});
+	}
+
+	// vm.expectRevert("Address: call to non-contract");
+	function testFail_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
+		address nonContractAddress = address(0xff22ff33);
+
+		MultiToken.Asset(MultiToken.Category.ERC20, nonContractAddress, 0, amount).safeTransferAssetFrom({
 			source: address(this),
 			dest: recipient
 		});
@@ -170,6 +255,33 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
 		});
 	}
 
+	// vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+	function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenTransferReturnsFalse() external {
+		vm.clearMockedCalls();
+		vm.mockCall(
+			token,
+			abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, amount),
+			abi.encode(false)
+		);
+
+		MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFrom({
+			source: source,
+			dest: recipient
+		});
+	}
+
+	// vm.expectRevert("Address: call to non-contract");
+	function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenCallToNonContractAddress() external {
+		address nonContractAddress = address(0xff22ff33);
+
+		MultiToken.Asset(MultiToken.Category.ERC20, nonContractAddress, 0, amount).safeTransferAssetFrom({
+			source: source,
+			dest: recipient
+		});
+	}
+
+	// ERC721
+
 	function test_shouldCallSafeTransferFrom_whenERC721() external {
 		vm.expectCall(
 			token,
@@ -180,6 +292,8 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
 			dest: recipient
 		});
 	}
+
+	// ERC1155
 
 	function test_shouldCallSafeTransferFrom_whenERC1155() external {
 		vm.expectCall(
@@ -202,6 +316,8 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
 			dest: recipient
 		});
 	}
+
+	// CryptoKitties
 
 	function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsThis() external {
 		vm.expectCall(
