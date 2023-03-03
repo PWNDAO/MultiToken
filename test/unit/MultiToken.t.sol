@@ -345,6 +345,59 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
 
 
 /*----------------------------------------------------------*|
+|*  # GET TRANSFER AMOUNT                                   *|
+|*----------------------------------------------------------*/
+
+contract MultiToken_GetTransferAmount_Test is MultiTokenTest {
+	using MultiToken for MultiToken.Asset;
+
+	// ERC20
+
+	function test_shouldReturnAssetAmount_whenERC20_whenNonZeroAmount() external {
+		uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).getTransferAmount();
+
+		assertEq(_amount, amount);
+	}
+
+	function test_shouldReturnAssetAmount_whenERC20_whenZeroAmount() external {
+		uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, 0).getTransferAmount();
+
+		assertEq(_amount, 0);
+	}
+
+	// ERC721
+
+	function test_shouldReturnOne_whenERC721() external {
+		uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0).getTransferAmount();
+
+		assertEq(_amount, 1);
+	}
+
+	// ERC1155
+
+	function test_shouldReturnAssetAmount_whenERC1155_whenNonZeroAmount() external {
+		uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).getTransferAmount();
+
+		assertEq(_amount, amount);
+	}
+
+	function test_shouldReturnOne_whenERC1155_whenZeroAmount() external {
+		uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0).getTransferAmount();
+
+		assertEq(_amount, 1);
+	}
+
+	// CryptoKitties
+
+	function test_shouldReturnOne_whenCryptoKitties() external {
+		uint256 _amount = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).getTransferAmount();
+
+		assertEq(_amount, 1);
+	}
+
+}
+
+/*----------------------------------------------------------*|
 |*  # TRANSFER ASSET FROM CALLDATA                          *|
 |*----------------------------------------------------------*/
 

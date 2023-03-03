@@ -100,6 +100,24 @@ library MultiToken {
         }
     }
 
+    /**
+     * getTransferAmount
+     * @dev Get amount of asset that would be transferred.
+     *      NFTs (ERC721, CryptoKitties & ERC1155 with amount 0) with return 1.
+     *      Fungible tokens will return its amount (ERC20 with 0 amount is valid state).
+     *      In combination with `MultiToken.balanceOf`, `getTransferAmount` can be used to check successful asset transfer.
+     * @param asset Struct defining all necessary context of a token.
+     * @return Number of tokens that would be transferred of the asset.
+     */
+    function getTransferAmount(Asset memory asset) internal pure returns (uint256) {
+        if (asset.category == Category.ERC20)
+            return asset.amount;
+        else if (asset.category == Category.ERC1155 && asset.amount > 0)
+            return asset.amount;
+        else // Return 1 for ERC721, CryptoKitties and ERC1155 used as NFTs (amount = 0)
+            return 1;
+    }
+
 
     /*----------------------------------------------------------*|
     |*  # TRANSFER ASSET CALLDATA                               *|
