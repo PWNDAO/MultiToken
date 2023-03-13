@@ -288,12 +288,14 @@ library MultiToken {
     /**
      * approveAsset
      * @dev Wrapping function for `approve` calls on various token interfaces.
+     *      By using `safeApprove` for ERC20, caller can set allowance to 0 or from 0.
+     *      Cannot set non-zero value if allowance is also non-zero.
      * @param asset Struct defining all necessary context of a token.
      * @param target Account/address that would be granted approval to `asset`.
      */
     function approveAsset(Asset memory asset, address target) internal {
         if (asset.category == Category.ERC20) {
-            IERC20(asset.assetAddress).approve(target, asset.amount);
+            IERC20(asset.assetAddress).safeApprove(target, asset.amount);
 
         } else if (asset.category == Category.ERC721) {
             IERC721(asset.assetAddress).approve(target, asset.id);

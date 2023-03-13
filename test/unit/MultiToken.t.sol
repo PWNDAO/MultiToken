@@ -815,6 +815,11 @@ contract MultiToken_ApproveAsset_Test is MultiTokenTest {
             abi.encodeWithSelector(IERC20.approve.selector),
             abi.encode(true)
         );
+        vm.mockCall(
+            token,
+            abi.encodeWithSelector(IERC20.allowance.selector),
+            abi.encode(0)
+        );
 
         vm.expectCall(
             token,
