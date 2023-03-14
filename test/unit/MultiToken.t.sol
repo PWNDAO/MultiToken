@@ -910,6 +910,14 @@ contract MultiToken_IsValid_Test is MultiTokenTest {
     }
 
 
+    // General
+
+    function test_shouldFail_whenNoContractAddress() external {
+        bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, address(0), 0, amount).isValid();
+
+        assertEq(isValid, false);
+    }
+
     // ERC20
 
     function test_shouldFail_whenERC20WithNonZeroId() external {

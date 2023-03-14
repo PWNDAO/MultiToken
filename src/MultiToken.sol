@@ -318,7 +318,7 @@ library MultiToken {
 
     /**
      * isValid
-     * @dev Checks that provided asset has correct format and stated category.
+     * @dev Checks that provided asset is contract, has correct format and stated category.
      *      NFT (ERC721, CryptoKitties) tokens has to have amount = 0.
      *      Fungible tokens (ERC20) has to have id = 0.
      *      Correct asset category is determined via ERC165.
@@ -348,7 +348,9 @@ library MultiToken {
                 return true;
 
             } else {
-                return true;
+                // Check that asset address is contract
+                // Tip: asset address will return code length 0, if this code is called from the asset constructor
+                return asset.assetAddress.code.length > 0;
             }
 
         } else if (asset.category == Category.ERC721) {
