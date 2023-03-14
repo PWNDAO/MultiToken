@@ -334,13 +334,22 @@ library MultiToken {
                 return false;
 
             // Check it's not ERC721 nor ERC1155 nor CryptoKitties via ERC165
-            bytes4[] memory interfaceIds = new bytes4[](3);
-            interfaceIds[0] = ERC721_INTERFACE_ID;
-            interfaceIds[1] = ERC1155_INTERFACE_ID;
-            interfaceIds[2] = CRYPTO_KITTIES_INTERFACE_ID;
-            bool[] memory supportedInterfaceIds = asset.assetAddress.getSupportedInterfaces(interfaceIds);
+            if (asset.assetAddress.supportsERC165()) {
 
-            return !supportedInterfaceIds[0] && !supportedInterfaceIds[1] && !supportedInterfaceIds[2];
+                if (asset.assetAddress.supportsERC165InterfaceUnchecked(ERC721_INTERFACE_ID))
+                    return false;
+
+                if (asset.assetAddress.supportsERC165InterfaceUnchecked(ERC1155_INTERFACE_ID))
+                    return false;
+
+                if (asset.assetAddress.supportsERC165InterfaceUnchecked(CRYPTO_KITTIES_INTERFACE_ID))
+                    return false;
+
+                return true;
+
+            } else {
+                return true;
+            }
 
         } else if (asset.category == Category.ERC721) {
             // Check format
