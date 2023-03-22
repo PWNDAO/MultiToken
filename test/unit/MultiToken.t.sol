@@ -26,6 +26,61 @@ abstract contract MultiTokenTest is Test {
 
 }
 
+
+/*----------------------------------------------------------*|
+|*  # FACTORY FUNCTIONS                                     *|
+|*----------------------------------------------------------*/
+
+contract MultiToken_FactoryFunctions_Test is MultiTokenTest {
+
+    function testFuzz_shouldReturnERC20(address assetAddress, uint256 _amount) external {
+        MultiToken.Asset memory asset = MultiToken.ERC20(assetAddress, _amount);
+
+        assertTrue(asset.category == MultiToken.Category.ERC20);
+        assertEq(asset.assetAddress, assetAddress);
+        assertEq(asset.id, 0);
+        assertEq(asset.amount, _amount);
+    }
+
+    function test_shouldReturnERC721(address assetAddress, uint256 _id) external {
+        MultiToken.Asset memory asset = MultiToken.ERC721(assetAddress, _id);
+
+        assertTrue(asset.category == MultiToken.Category.ERC721);
+        assertEq(asset.assetAddress, assetAddress);
+        assertEq(asset.id, _id);
+        assertEq(asset.amount, 0);
+    }
+
+    function test_shouldReturnERC1155_withZeroAmount(address assetAddress, uint256 _id) external {
+        MultiToken.Asset memory asset = MultiToken.ERC1155(assetAddress, _id);
+
+        assertTrue(asset.category == MultiToken.Category.ERC1155);
+        assertEq(asset.assetAddress, assetAddress);
+        assertEq(asset.id, _id);
+        assertEq(asset.amount, 0);
+    }
+
+    function test_shouldReturnERC1155(address assetAddress, uint256 _id, uint256 _amount) external {
+        MultiToken.Asset memory asset = MultiToken.ERC1155(assetAddress, _id, _amount);
+
+        assertTrue(asset.category == MultiToken.Category.ERC1155);
+        assertEq(asset.assetAddress, assetAddress);
+        assertEq(asset.id, _id);
+        assertEq(asset.amount, _amount);
+    }
+
+    function test_shouldReturnCryptoKitties(address assetAddress, uint256 _id) external {
+        MultiToken.Asset memory asset = MultiToken.CryptoKitties(assetAddress, _id);
+
+        assertTrue(asset.category == MultiToken.Category.CryptoKitties);
+        assertEq(asset.assetAddress, assetAddress);
+        assertEq(asset.id, _id);
+        assertEq(asset.amount, 0);
+    }
+
+}
+
+
 /*----------------------------------------------------------*|
 |*  # TRANSFER ASSET FROM                                   *|
 |*----------------------------------------------------------*/

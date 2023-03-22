@@ -46,6 +46,31 @@ library MultiToken {
 
 
     /*----------------------------------------------------------*|
+    |*  # FACTORY FUNCTIONS                                     *|
+    |*----------------------------------------------------------*/
+
+    function ERC20(address assetAddress, uint256 amount) internal pure returns (Asset memory) {
+        return Asset(Category.ERC20, assetAddress, 0, amount);
+    }
+
+    function ERC721(address assetAddress, uint256 id) internal pure returns (Asset memory) {
+        return Asset(Category.ERC721, assetAddress, id, 0);
+    }
+
+    function ERC1155(address assetAddress, uint256 id, uint256 amount) internal pure returns (Asset memory) {
+        return Asset(Category.ERC1155, assetAddress, id, amount);
+    }
+
+    function ERC1155(address assetAddress, uint256 id) internal pure returns (Asset memory) {
+        return Asset(Category.ERC1155, assetAddress, id, 0);
+    }
+
+    function CryptoKitties(address assetAddress, uint256 id) internal pure returns (Asset memory) {
+        return Asset(Category.CryptoKitties, assetAddress, id, 0);
+    }
+
+
+    /*----------------------------------------------------------*|
     |*  # TRANSFER ASSET                                        *|
     |*----------------------------------------------------------*/
 
