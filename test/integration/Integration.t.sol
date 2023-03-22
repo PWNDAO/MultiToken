@@ -73,7 +73,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             WETH,
             abi.encodeWithSignature("transfer(address,uint256)", chandler, amount)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, WETH, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(WETH, amount).transferAssetFrom({
             source: address(this),
             dest: chandler
         });
@@ -94,7 +94,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             BNB,
             abi.encodeWithSignature("transfer(address,uint256)", chandler, amount)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, BNB, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(BNB, amount).transferAssetFrom({
             source: address(this),
             dest: chandler
         });
@@ -116,7 +116,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             USDT,
             abi.encodeWithSignature("transfer(address,uint256)", chandler, amount)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, USDT, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(USDT, amount).transferAssetFrom({
             source: address(this),
             dest: chandler
         });
@@ -137,7 +137,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
         assertEq(IERC20(WETH).balanceOf(chandler), amount);
         assertEq(IERC20(WETH).balanceOf(joey), 0);
 
-        asset = MultiToken.Asset(MultiToken.Category.ERC20, WETH, 0, amount);
+        asset = MultiToken.ERC20(WETH, amount);
 
         vm.startPrank(chandler); // `safeApprove` is calling `allowance` getter before setting it
         asset.approveAsset(address(this));
@@ -164,7 +164,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
         assertEq(IERC20(BNB).balanceOf(chandler), amount);
         assertEq(IERC20(BNB).balanceOf(joey), 0);
 
-        asset = MultiToken.Asset(MultiToken.Category.ERC20, BNB, 0, amount);
+        asset = MultiToken.ERC20(BNB, amount);
 
         vm.startPrank(chandler); // `safeApprove` is calling `allowance` getter before setting it
         asset.approveAsset(address(this));
@@ -192,7 +192,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
         assertEq(IERC20(USDT).balanceOf(chandler), amount);
         assertEq(IERC20(USDT).balanceOf(joey), 0);
 
-        asset = MultiToken.Asset(MultiToken.Category.ERC20, USDT, 0, amount);
+        asset = MultiToken.ERC20(USDT, amount);
 
         vm.startPrank(chandler); // `safeApprove` is calling `allowance` getter before setting it
         asset.approveAsset(address(this));
@@ -224,7 +224,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             DOODLE,
             abi.encodeWithSignature("safeTransferFrom(address,address,uint256,bytes)", address(this), joey, id, "")
         );
-        MultiToken.Asset(MultiToken.Category.ERC721, DOODLE, id, 0).safeTransferAssetFrom({
+        MultiToken.ERC721(DOODLE, id).safeTransferAssetFrom({
             source: address(this),
             dest: joey
         });
@@ -243,7 +243,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             DOODLE,
             abi.encodeWithSignature("transferFrom(address,address,uint256)", address(this), joey, id)
         );
-        MultiToken.Asset(MultiToken.Category.ERC721, DOODLE, id, 0).transferAssetFrom({
+        MultiToken.ERC721(DOODLE, id).transferAssetFrom({
             source: address(this),
             dest: joey
         });
@@ -257,7 +257,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
         T1155 t1155 = new T1155();
         t1155.mint(chandler, id, amount);
 
-        MultiToken.Asset memory asset = MultiToken.Asset(MultiToken.Category.ERC1155, address(t1155), id, 0);
+        MultiToken.Asset memory asset = MultiToken.ERC1155(address(t1155), id, 0);
 
         vm.prank(chandler);
         asset.approveAsset(address(this));
@@ -282,7 +282,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
         T1155 t1155 = new T1155();
         t1155.mint(chandler, id, amount);
 
-        MultiToken.Asset memory asset = MultiToken.Asset(MultiToken.Category.ERC1155, address(t1155), id, amount);
+        MultiToken.Asset memory asset = MultiToken.ERC1155(address(t1155), id, amount);
 
         vm.prank(chandler);
         asset.approveAsset(address(this));
@@ -316,7 +316,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             CK,
             abi.encodeWithSignature("transfer(address,uint256)", joey, id)
         );
-        MultiToken.Asset(MultiToken.Category.CryptoKitties, CK, id, 0).transferAssetFrom({
+        MultiToken.CryptoKitties(CK, id).transferAssetFrom({
             source: address(this),
             dest: joey
         });
@@ -325,7 +325,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
     }
 
     function test_transferCryptoKitties_whenCallerIsNotSource() external {
-        MultiToken.Asset memory asset = MultiToken.Asset(MultiToken.Category.CryptoKitties, CK, id, 0);
+        MultiToken.Asset memory asset = MultiToken.CryptoKitties(CK, id);
         address trueOwner = ICryptoKitties(CK).ownerOf(id);
         vm.prank(trueOwner);
         ICryptoKitties(CK).transfer(chandler, id);
@@ -386,7 +386,7 @@ contract MultiToken_Permit_IntegrationTest is MultiTokenIntegrationTest {
 
         bytes memory permitData = abi.encodePacked(2 * block.timestamp, r, s, v);
 
-        MultiToken.Asset(MultiToken.Category.ERC20, USDC, 0, amount).permit(chandler, address(this), permitData);
+        MultiToken.ERC20(USDC, amount).permit(chandler, address(this), permitData);
 
         IERC20(USDC).transferFrom(chandler, joey, amount);
 
@@ -400,7 +400,7 @@ contract MultiToken_Permit_IntegrationTest is MultiTokenIntegrationTest {
         bytes32 vs = bytes32(uint256(v - 27) << 255) | s;
         bytes memory permitData = abi.encodePacked(2 * block.timestamp, r, vs);
 
-        MultiToken.Asset(MultiToken.Category.ERC20, USDC, 0, amount).permit(chandler, address(this), permitData);
+        MultiToken.ERC20(USDC, amount).permit(chandler, address(this), permitData);
 
         IERC20(USDC).transferFrom(chandler, joey, amount);
 
@@ -427,7 +427,7 @@ contract MultiToken_Approve_IntegrationTest is MultiTokenIntegrationTest {
         assertEq(IERC20(USDC).allowance(chandler, joey), 0);
 
         vm.startPrank(chandler); // `safeApprove` is calling `allowance` getter before setting it
-        MultiToken.Asset(MultiToken.Category.ERC20, USDC, 0, amount).approveAsset(joey);
+        MultiToken.ERC20(USDC, amount).approveAsset(joey);
         vm.stopPrank();
 
         assertEq(IERC20(USDC).allowance(chandler, joey), amount);
@@ -441,7 +441,7 @@ contract MultiToken_Approve_IntegrationTest is MultiTokenIntegrationTest {
         assertEq(IERC721(DOODLE).getApproved(id), address(0));
 
         vm.prank(chandler);
-        MultiToken.Asset(MultiToken.Category.ERC721, DOODLE, id, 0).approveAsset(joey);
+        MultiToken.ERC721(DOODLE, id).approveAsset(joey);
 
         assertEq(IERC721(DOODLE).getApproved(id), joey);
     }
@@ -453,14 +453,14 @@ contract MultiToken_Approve_IntegrationTest is MultiTokenIntegrationTest {
         assertEq(t1155.isApprovedForAll(chandler, joey), false);
 
         vm.prank(chandler);
-        MultiToken.Asset(MultiToken.Category.ERC1155, address(t1155), id, amount).approveAsset(joey);
+        MultiToken.ERC1155(address(t1155), id, amount).approveAsset(joey);
 
         assertEq(t1155.isApprovedForAll(chandler, joey), true);
     }
 
     // CryptoKitties doesn't implement `getApproved` function. The approve is tested by a transfer.
     function test_approveId_whenCryptoKitties() external {
-        MultiToken.Asset memory asset = MultiToken.Asset(MultiToken.Category.CryptoKitties, CK, id, 0);
+        MultiToken.Asset memory asset = MultiToken.CryptoKitties(CK, id);
         address trueOwner = ICryptoKitties(CK).ownerOf(id);
         vm.prank(trueOwner);
         ICryptoKitties(CK).transfer(chandler, id);

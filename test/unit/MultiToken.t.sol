@@ -109,7 +109,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transfer(address,uint256)", recipient, amount)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(token, amount).transferAssetFrom({
             source: address(this),
             dest: recipient
         });
@@ -124,7 +124,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             abi.encode(false)
         );
 
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(token, amount).transferAssetFrom({
             source: address(this),
             dest: recipient
         });
@@ -134,7 +134,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
     function testFail_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
-        MultiToken.Asset(MultiToken.Category.ERC20, nonContractAddress, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(nonContractAddress, amount).transferAssetFrom({
             source: address(this),
             dest: recipient
         });
@@ -145,7 +145,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, amount)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(token, amount).transferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -160,7 +160,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             abi.encode(false)
         );
 
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(token, amount).transferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -170,7 +170,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
     function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
-        MultiToken.Asset(MultiToken.Category.ERC20, nonContractAddress, 0, amount).transferAssetFrom({
+        MultiToken.ERC20(nonContractAddress, amount).transferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -183,7 +183,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
         );
-        MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0).transferAssetFrom({
+        MultiToken.ERC721(token, id).transferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -196,7 +196,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, amount, "")
         );
-        MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).transferAssetFrom({
+        MultiToken.ERC1155(token, id, amount).transferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -207,7 +207,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, 1, "")
         );
-        MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0).transferAssetFrom({
+        MultiToken.ERC1155(token, id, 0).transferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -220,7 +220,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transfer(address,uint256)", recipient, id)
         );
-        MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).transferAssetFrom({
+        MultiToken.CryptoKitties(token, id).transferAssetFrom({
             source: address(this),
             dest: recipient
         });
@@ -231,7 +231,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
         );
-        MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).transferAssetFrom({
+        MultiToken.CryptoKitties(token, id).transferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -268,7 +268,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transfer(address,uint256)", recipient, amount)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFrom({
+        MultiToken.ERC20(token, amount).safeTransferAssetFrom({
             source: address(this),
             dest: recipient
         });
@@ -283,7 +283,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             abi.encode(false)
         );
 
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFrom({
+        MultiToken.ERC20(token, amount).safeTransferAssetFrom({
             source: address(this),
             dest: recipient
         });
@@ -293,7 +293,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
     function testFail_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
-        MultiToken.Asset(MultiToken.Category.ERC20, nonContractAddress, 0, amount).safeTransferAssetFrom({
+        MultiToken.ERC20(nonContractAddress, amount).safeTransferAssetFrom({
             source: address(this),
             dest: recipient
         });
@@ -304,7 +304,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, amount)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFrom({
+        MultiToken.ERC20(token, amount).safeTransferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -319,7 +319,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             abi.encode(false)
         );
 
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFrom({
+        MultiToken.ERC20(token, amount).safeTransferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -329,7 +329,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
     function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
-        MultiToken.Asset(MultiToken.Category.ERC20, nonContractAddress, 0, amount).safeTransferAssetFrom({
+        MultiToken.ERC20(nonContractAddress, amount).safeTransferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -342,7 +342,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("safeTransferFrom(address,address,uint256,bytes)", source, recipient, id, "")
         );
-        MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0).safeTransferAssetFrom({
+        MultiToken.ERC721(token, id).safeTransferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -355,7 +355,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, amount, "")
         );
-        MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).safeTransferAssetFrom({
+        MultiToken.ERC1155(token, id, amount).safeTransferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -366,7 +366,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, 1, "")
         );
-        MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0).safeTransferAssetFrom({
+        MultiToken.ERC1155(token, id, 0).safeTransferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -379,7 +379,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transfer(address,uint256)", recipient, id)
         );
-        MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).safeTransferAssetFrom({
+        MultiToken.CryptoKitties(token, id).safeTransferAssetFrom({
             source: address(this),
             dest: recipient
         });
@@ -390,7 +390,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
         );
-        MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).safeTransferAssetFrom({
+        MultiToken.CryptoKitties(token, id).safeTransferAssetFrom({
             source: source,
             dest: recipient
         });
@@ -409,13 +409,13 @@ contract MultiToken_GetTransferAmount_Test is MultiTokenTest {
     // ERC20
 
     function test_shouldReturnAssetAmount_whenERC20_whenNonZeroAmount() external {
-        uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).getTransferAmount();
+        uint256 _amount = MultiToken.ERC20(token, amount).getTransferAmount();
 
         assertEq(_amount, amount);
     }
 
     function test_shouldReturnAssetAmount_whenERC20_whenZeroAmount() external {
-        uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, 0).getTransferAmount();
+        uint256 _amount = MultiToken.ERC20(token, 0).getTransferAmount();
 
         assertEq(_amount, 0);
     }
@@ -423,7 +423,7 @@ contract MultiToken_GetTransferAmount_Test is MultiTokenTest {
     // ERC721
 
     function test_shouldReturnOne_whenERC721() external {
-        uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0).getTransferAmount();
+        uint256 _amount = MultiToken.ERC721(token, id).getTransferAmount();
 
         assertEq(_amount, 1);
     }
@@ -431,13 +431,13 @@ contract MultiToken_GetTransferAmount_Test is MultiTokenTest {
     // ERC1155
 
     function test_shouldReturnAssetAmount_whenERC1155_whenNonZeroAmount() external {
-        uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).getTransferAmount();
+        uint256 _amount = MultiToken.ERC1155(token, id, amount).getTransferAmount();
 
         assertEq(_amount, amount);
     }
 
     function test_shouldReturnOne_whenERC1155_whenZeroAmount() external {
-        uint256 _amount = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0).getTransferAmount();
+        uint256 _amount = MultiToken.ERC1155(token, id, 0).getTransferAmount();
 
         assertEq(_amount, 1);
     }
@@ -445,7 +445,7 @@ contract MultiToken_GetTransferAmount_Test is MultiTokenTest {
     // CryptoKitties
 
     function test_shouldReturnOne_whenCryptoKitties() external {
-        uint256 _amount = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).getTransferAmount();
+        uint256 _amount = MultiToken.CryptoKitties(token, id).getTransferAmount();
 
         assertEq(_amount, 1);
     }
@@ -460,7 +460,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
     using MultiToken for MultiToken.Asset;
 
     function test_shouldReturnTransferCalldata_whenERC20_whenFromSender() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC20(token, amount).transferAssetFromCalldata({
             source: address(this),
             dest: recipient,
             fromSender: true
@@ -473,7 +473,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnTransferFromCalldata_whenERC20_whenNotFromSender() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).transferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC20(token, amount).transferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -486,7 +486,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnTransferFromCalldata_whenERC721() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0).transferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC721(token, id).transferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -499,7 +499,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnSafeTransferFromCalldata_whenERC1155() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).transferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC1155(token, id, amount).transferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -512,7 +512,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnAmountToOne_whenERC1155WithZeroAmount() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0).transferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC1155(token, id, 0).transferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -525,7 +525,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnTransferFromCalldata_whenCryptoKitties_whenFromSender() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).transferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.CryptoKitties(token, id).transferAssetFromCalldata({
             source: address(this),
             dest: recipient,
             fromSender: true
@@ -538,7 +538,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnTransferFromCalldata_whenCryptoKitties_whenNotFromSender() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).transferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.CryptoKitties(token, id).transferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -561,7 +561,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
     using MultiToken for MultiToken.Asset;
 
     function test_shouldReturnTransferCalldata_whenERC20_whenFromSender() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC20(token, amount).safeTransferAssetFromCalldata({
             source: address(this),
             dest: recipient,
             fromSender: true
@@ -574,7 +574,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnTransferFromCalldata_whenERC20_whenNotFromSender() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).safeTransferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC20(token, amount).safeTransferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -587,7 +587,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnSafeTransferFromCalldata_whenERC721() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC721, token, id, 0).safeTransferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC721(token, id).safeTransferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -600,7 +600,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnSafeTransferFromCalldata_whenERC1155() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).safeTransferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC1155(token, id, amount).safeTransferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -613,7 +613,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnAmountToOne_whenERC1155WithZeroAmount() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 0).safeTransferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.ERC1155(token, id, 0).safeTransferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -626,7 +626,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnTransferFromCalldata_whenCryptoKitties_whenFromSender() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).safeTransferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.CryptoKitties(token, id).safeTransferAssetFromCalldata({
             source: address(this),
             dest: recipient,
             fromSender: true
@@ -639,7 +639,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
     }
 
     function test_shouldReturnTransferFromCalldata_whenCryptoKitties_whenNotFromSender() external {
-        bytes memory _calldata = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 0).safeTransferAssetFromCalldata({
+        bytes memory _calldata = MultiToken.CryptoKitties(token, id).safeTransferAssetFromCalldata({
             source: source,
             dest: recipient,
             fromSender: false
@@ -668,7 +668,7 @@ contract MultiToken_Permit_Test is MultiTokenTest {
 
     function test_shouldFail_whenERC721() external {
         vm.expectRevert("MultiToken::Permit: Unsupported category");
-        MultiToken.Asset(MultiToken.Category.ERC721, token, 787282, 1).permit({
+        MultiToken.ERC721(token, 787282).permit({
             owner: owner,
             spender: spender,
             permitData: bytes("permit signature")
@@ -677,7 +677,7 @@ contract MultiToken_Permit_Test is MultiTokenTest {
 
     function test_shouldFail_whenERC1155() external {
         vm.expectRevert("MultiToken::Permit: Unsupported category");
-        MultiToken.Asset(MultiToken.Category.ERC1155, token, 787282, 1).permit({
+        MultiToken.ERC1155(token, 787282).permit({
             owner: owner,
             spender: spender,
             permitData: bytes("permit signature")
@@ -686,7 +686,7 @@ contract MultiToken_Permit_Test is MultiTokenTest {
 
     function test_shouldFail_whenPermitWithWrongLength() external {
         vm.expectRevert("MultiToken::Permit: Invalid permit length");
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, 1).permit({
+        MultiToken.ERC20(token, 1).permit({
             owner: owner,
             spender: spender,
             permitData: bytes("permit signature with wrong length")
@@ -703,7 +703,7 @@ contract MultiToken_Permit_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC20Permit.permit.selector, owner, spender, amount, deadline, v, r, s)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).permit({
+        MultiToken.ERC20(token, amount).permit({
             owner: owner,
             spender: spender,
             permitData: permit
@@ -722,7 +722,7 @@ contract MultiToken_Permit_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC20Permit.permit.selector, owner, spender, amount, deadline, v, r, s)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).permit({
+        MultiToken.ERC20(token, amount).permit({
             owner: owner,
             spender: spender,
             permitData: permit
@@ -741,7 +741,7 @@ contract MultiToken_Permit_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC20Permit.permit.selector, owner, spender, amount, deadline, v, r, s)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).permit({
+        MultiToken.ERC20(token, amount).permit({
             owner: owner,
             spender: spender,
             permitData: permit
@@ -769,7 +769,7 @@ contract MultiToken_BalanceOf_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC20.balanceOf.selector, source)
         );
-        uint256 balance = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, 10e18).balanceOf(source);
+        uint256 balance = MultiToken.ERC20(token, 10e18).balanceOf(source);
 
         assertEq(balance, amount);
     }
@@ -785,7 +785,7 @@ contract MultiToken_BalanceOf_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC721.ownerOf.selector, id)
         );
-        uint256 balance = MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1).balanceOf(source);
+        uint256 balance = MultiToken.ERC721(token, id).balanceOf(source);
 
         assertEq(balance, 1);
     }
@@ -801,7 +801,7 @@ contract MultiToken_BalanceOf_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC721.ownerOf.selector, id)
         );
-        uint256 balance = MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1).balanceOf(source);
+        uint256 balance = MultiToken.ERC721(token, id).balanceOf(source);
 
         assertEq(balance, 0);
     }
@@ -817,7 +817,7 @@ contract MultiToken_BalanceOf_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC1155.balanceOf.selector, source, id)
         );
-        uint256 balance = MultiToken.Asset(MultiToken.Category.ERC1155, token, id, 10e18).balanceOf(source);
+        uint256 balance = MultiToken.ERC1155(token, id, 10e18).balanceOf(source);
 
         assertEq(balance, amount);
     }
@@ -833,7 +833,7 @@ contract MultiToken_BalanceOf_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(ICryptoKitties.ownerOf.selector, id)
         );
-        uint256 balance = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1).balanceOf(source);
+        uint256 balance = MultiToken.CryptoKitties(token, id).balanceOf(source);
 
         assertEq(balance, 1);
     }
@@ -849,7 +849,7 @@ contract MultiToken_BalanceOf_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(ICryptoKitties.ownerOf.selector, id)
         );
-        uint256 balance = MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1).balanceOf(source);
+        uint256 balance = MultiToken.CryptoKitties(token, id).balanceOf(source);
 
         assertEq(balance, 0);
     }
@@ -880,7 +880,7 @@ contract MultiToken_ApproveAsset_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC20.approve.selector, recipient, amount)
         );
-        MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).approveAsset(recipient);
+        MultiToken.ERC20(token, amount).approveAsset(recipient);
     }
 
     function test_shouldCallApprove_whenERC721() external {
@@ -888,7 +888,7 @@ contract MultiToken_ApproveAsset_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC721.approve.selector, recipient, id)
         );
-        MultiToken.Asset(MultiToken.Category.ERC721, token, id, 1).approveAsset(recipient);
+        MultiToken.ERC721(token, id).approveAsset(recipient);
     }
 
     function test_shouldCallSetApprovalForAll_whenERC1155() external {
@@ -896,7 +896,7 @@ contract MultiToken_ApproveAsset_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(IERC1155.setApprovalForAll.selector, recipient, true)
         );
-        MultiToken.Asset(MultiToken.Category.ERC1155, token, id, amount).approveAsset(recipient);
+        MultiToken.ERC1155(token, id, amount).approveAsset(recipient);
     }
 
     function test_shouldCallApprove_whenCryptoKitties() external {
@@ -904,7 +904,7 @@ contract MultiToken_ApproveAsset_Test is MultiTokenTest {
             token,
             abi.encodeWithSelector(ICryptoKitties.approve.selector, recipient, id)
         );
-        MultiToken.Asset(MultiToken.Category.CryptoKitties, token, id, 1).approveAsset(recipient);
+        MultiToken.CryptoKitties(token, id).approveAsset(recipient);
     }
 
 }
