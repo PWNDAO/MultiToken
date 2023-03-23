@@ -15,6 +15,7 @@ library MultiToken {
     using ERC165Checker for address;
     using SafeERC20 for IERC20;
 
+    bytes4 public constant ERC20_INTERFACE_ID = 0x36372b07;
     bytes4 public constant ERC721_INTERFACE_ID = 0x80ac58cd;
     bytes4 public constant ERC1155_INTERFACE_ID = 0xd9b67a26;
     bytes4 public constant CRYPTO_KITTIES_INTERFACE_ID = 0x9a20483d;
@@ -319,10 +320,9 @@ library MultiToken {
     /**
      * isValid
      * @dev Checks that provided asset is contract, has correct format and stated category.
-     *      NFT (ERC721, CryptoKitties) tokens has to have amount = 0.
-     *      Fungible tokens (ERC20) has to have id = 0.
+     *      Fungible tokens (ERC20) have to have id = 0.
+     *      NFT (ERC721, CryptoKitties) tokens have to have amount = 0.
      *      Correct asset category is determined via ERC165.
-     *      ERC20s category is accepted, if ERC165 check returns false for any other category as ERC20 doesn't implement ERC165.
      *      The check assumes, that asset contract implements only one token standard at a time.
      * @param asset Asset that is examined.
      * @return True if assets amount and id is valid in stated category.
@@ -333,21 +333,15 @@ library MultiToken {
             if (asset.id != 0)
                 return false;
 
-            // Check it's not ERC721 nor ERC1155 nor CryptoKitties via ERC165
+            // ERC20 has optional ERC165 implementation
             if (asset.assetAddress.supportsERC165()) {
-
-                if (asset.assetAddress.supportsERC165InterfaceUnchecked(ERC721_INTERFACE_ID))
-                    return false;
-
-                if (asset.assetAddress.supportsERC165InterfaceUnchecked(ERC1155_INTERFACE_ID))
-                    return false;
-
-                if (asset.assetAddress.supportsERC165InterfaceUnchecked(CRYPTO_KITTIES_INTERFACE_ID))
-                    return false;
-
-                return true;
+                // If ERC20 implements ERC165, it has to return true for its interface id
+                return asset.assetAddress.supportsERC165InterfaceUnchecked(ERC20_INTERFACE_ID);
 
             } else {
+                // In case token doesn't implement ERC165, its safe to assume that provided category is correct,
+                // because any other category have to implement ERC165.
+
                 // Check that asset address is contract
                 // Tip: asset address will return code length 0, if this code is called from the asset constructor
                 return asset.assetAddress.code.length > 0;
