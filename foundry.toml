@@ -1,4 +1,15 @@
 [profile.default]
 solc_version = '0.8.16'
 
+remappings = [
+    "@MT/=src/",
+    "@openzeppelin/=lib/openzeppelin-contracts/contracts/"
+]
+
+
+[rpc_endpoints]
+# Mainnets
+mainnet = "${ETHEREUM_URL}"
+
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

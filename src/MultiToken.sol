@@ -1,15 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "openzeppelin-contracts/contracts/interfaces/IERC20.sol";
-import "openzeppelin-contracts/contracts/interfaces/IERC721.sol";
-import "openzeppelin-contracts/contracts/interfaces/IERC1155.sol";
-import "openzeppelin-contracts/contracts/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "@openzeppelin/interfaces/IERC20.sol";
+import "@openzeppelin/interfaces/IERC721.sol";
+import "@openzeppelin/interfaces/IERC1155.sol";
+import "@openzeppelin/token/ERC20/extensions/draft-IERC20Permit.sol";
+import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/utils/introspection/ERC165Checker.sol";
 
-import "./interfaces/ICryptoKitties.sol";
+import "@MT/interfaces/ICryptoKitties.sol";
 
 
 library MultiToken {
+    using ERC165Checker for address;
+    using SafeERC20 for IERC20;
+
+    bytes4 public constant ERC20_INTERFACE_ID = 0x36372b07;
+    bytes4 public constant ERC721_INTERFACE_ID = 0x80ac58cd;
+    bytes4 public constant ERC1155_INTERFACE_ID = 0xd9b67a26;
+    bytes4 public constant CRYPTO_KITTIES_INTERFACE_ID = 0x9a20483d;
 
     /**
      * @title Category
@@ -68,9 +77,9 @@ library MultiToken {
     function _transferAssetFrom(Asset memory asset, address source, address dest, bool isSafe) private {
         if (asset.category == Category.ERC20) {
             if (source == address(this))
-                require(IERC20(asset.assetAddress).transfer(dest, asset.amount), "MultiToken: ERC20 transfer failed");
+                IERC20(asset.assetAddress).safeTransfer(dest, asset.amount);
             else
-                require(IERC20(asset.assetAddress).transferFrom(source, dest, asset.amount), "MultiToken: ERC20 transferFrom failed");
+                IERC20(asset.assetAddress).safeTransferFrom(source, dest, asset.amount);
 
         } else if (asset.category == Category.ERC721) {
             if (!isSafe)
@@ -82,11 +91,32 @@ library MultiToken {
             IERC1155(asset.assetAddress).safeTransferFrom(source, dest, asset.id, asset.amount == 0 ? 1 : asset.amount, "");
 
         } else if (asset.category == Category.CryptoKitties) {
-            ICryptoKitties(asset.assetAddress).transferFrom(source, dest, asset.id);
+            if (source == address(this))
+                ICryptoKitties(asset.assetAddress).transfer(dest, asset.id);
+            else
+                ICryptoKitties(asset.assetAddress).transferFrom(source, dest, asset.id);
 
         } else {
             revert("MultiToken: Unsupported category");
         }
+    }
+
+    /**
+     * getTransferAmount
+     * @dev Get amount of asset that would be transferred.
+     *      NFTs (ERC721, CryptoKitties & ERC1155 with amount 0) with return 1.
+     *      Fungible tokens will return its amount (ERC20 with 0 amount is valid state).
+     *      In combination with `MultiToken.balanceOf`, `getTransferAmount` can be used to check successful asset transfer.
+     * @param asset Struct defining all necessary context of a token.
+     * @return Number of tokens that would be transferred of the asset.
+     */
+    function getTransferAmount(Asset memory asset) internal pure returns (uint256) {
+        if (asset.category == Category.ERC20)
+            return asset.amount;
+        else if (asset.category == Category.ERC1155 && asset.amount > 0)
+            return asset.amount;
+        else // Return 1 for ERC721, CryptoKitties and ERC1155 used as NFTs (amount = 0)
+            return 1;
     }
 
 
@@ -146,9 +176,15 @@ library MultiToken {
             );
 
         } else if (asset.category == Category.CryptoKitties) {
-            return abi.encodeWithSignature(
-                "transferFrom(address,address,uint256)", source, dest, asset.id
-            );
+            if (fromSender) {
+                return abi.encodeWithSignature(
+                    "transfer(address,uint256)", dest, asset.id
+                );
+            } else {
+                return abi.encodeWithSignature(
+                    "transferFrom(address,address,uint256)", source, dest, asset.id
+                );
+            }
 
         } else {
             revert("MultiToken: Unsupported category");
@@ -253,12 +289,14 @@ library MultiToken {
     /**
      * approveAsset
      * @dev Wrapping function for `approve` calls on various token interfaces.
+     *      By using `safeApprove` for ERC20, caller can set allowance to 0 or from 0.
+     *      Cannot set non-zero value if allowance is also non-zero.
      * @param asset Struct defining all necessary context of a token.
      * @param target Account/address that would be granted approval to `asset`.
      */
     function approveAsset(Asset memory asset, address target) internal {
         if (asset.category == Category.ERC20) {
-            IERC20(asset.assetAddress).approve(target, asset.amount);
+            IERC20(asset.assetAddress).safeApprove(target, asset.amount);
 
         } else if (asset.category == Category.ERC721) {
             IERC721(asset.assetAddress).approve(target, asset.id);
@@ -281,21 +319,57 @@ library MultiToken {
 
     /**
      * isValid
-     * @dev Checks that assets amount and id is valid in stated category.
-     *      This function don't check that stated category is indeed the category of a contract on a stated address.
+     * @dev Checks that provided asset is contract, has correct format and stated category.
+     *      Fungible tokens (ERC20) have to have id = 0.
+     *      NFT (ERC721, CryptoKitties) tokens have to have amount = 0.
+     *      Correct asset category is determined via ERC165.
+     *      The check assumes, that asset contract implements only one token standard at a time.
      * @param asset Asset that is examined.
      * @return True if assets amount and id is valid in stated category.
      */
-    function isValid(Asset memory asset) internal pure returns (bool) {
-        // ERC20 token has to have id set to 0
-        if (asset.category == Category.ERC20 && asset.id != 0)
-            return false;
+    function isValid(Asset memory asset) internal view returns (bool) {
+        if (asset.category == Category.ERC20) {
+            // Check format
+            if (asset.id != 0)
+                return false;
 
-        // ERC721 & CryptoKitties token has to have amount set to 0
-        if ((asset.category == Category.ERC721 || asset.category == Category.CryptoKitties) && asset.amount != 0)
-            return false;
+            // ERC20 has optional ERC165 implementation
+            if (asset.assetAddress.supportsERC165()) {
+                // If ERC20 implements ERC165, it has to return true for its interface id
+                return asset.assetAddress.supportsERC165InterfaceUnchecked(ERC20_INTERFACE_ID);
 
-        return true;
+            } else {
+                // In case token doesn't implement ERC165, its safe to assume that provided category is correct,
+                // because any other category have to implement ERC165.
+
+                // Check that asset address is contract
+                // Tip: asset address will return code length 0, if this code is called from the asset constructor
+                return asset.assetAddress.code.length > 0;
+            }
+
+        } else if (asset.category == Category.ERC721) {
+            // Check format
+            if (asset.amount != 0)
+                return false;
+
+            // Check it's ERC721 via ERC165
+            return asset.assetAddress.supportsInterface(ERC721_INTERFACE_ID);
+
+        } else if (asset.category == Category.ERC1155) {
+            // Check it's ERC1155 via ERC165
+            return asset.assetAddress.supportsInterface(ERC1155_INTERFACE_ID);
+
+        } else if (asset.category == Category.CryptoKitties) {
+            // Check format
+            if (asset.amount != 0)
+                return false;
+
+            // Check it's CryptoKitties via ERC165
+            return asset.assetAddress.supportsInterface(CRYPTO_KITTIES_INTERFACE_ID);
+
+        } else {
+            revert("MultiToken: Unsupported category");
+        }
     }
 
     /**
