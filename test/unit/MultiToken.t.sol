@@ -983,14 +983,44 @@ contract MultiToken_IsValid_Test is MultiTokenTest {
         assertEq(isValid, false);
     }
 
-    function test_shouldFail_whenERC20WithERC165_notSupportingIERC20() external {
+    function test_shouldFail_whenERC20WithERC165_supportingIERC721() external {
         _mockERC20Token(token);
 
         _mockERC165Token(token);
         vm.mockCall(
             token,
-            abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.ERC20_INTERFACE_ID),
-            abi.encode(false)
+            abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.ERC721_INTERFACE_ID),
+            abi.encode(true)
+        );
+
+        bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();
+
+        assertEq(isValid, false);
+    }
+
+    function test_shouldFail_whenERC20WithERC165_supportingIERC1155() external {
+        _mockERC20Token(token);
+
+        _mockERC165Token(token);
+        vm.mockCall(
+            token,
+            abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.ERC1155_INTERFACE_ID),
+            abi.encode(true)
+        );
+
+        bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();
+
+        assertEq(isValid, false);
+    }
+
+    function test_shouldFail_whenERC20WithERC165_supportingICryptoKitties() external {
+        _mockERC20Token(token);
+
+        _mockERC165Token(token);
+        vm.mockCall(
+            token,
+            abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.CRYPTO_KITTIES_INTERFACE_ID),
+            abi.encode(true)
         );
 
         bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();
@@ -1006,6 +1036,31 @@ contract MultiToken_IsValid_Test is MultiTokenTest {
             token,
             abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.ERC20_INTERFACE_ID),
             abi.encode(true)
+        );
+
+        bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();
+
+        assertEq(isValid, true);
+    }
+
+    function test_shouldPass_whenERC20WithERC165_notSupportingIERC721_norSupportingIERC1155_norSupportingICryptoKitties() external {
+        _mockERC20Token(token);
+
+        _mockERC165Token(token);
+        vm.mockCall(
+            token,
+            abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.ERC721_INTERFACE_ID),
+            abi.encode(false)
+        );
+        vm.mockCall(
+            token,
+            abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.ERC1155_INTERFACE_ID),
+            abi.encode(false)
+        );
+        vm.mockCall(
+            token,
+            abi.encodeWithSignature("supportsInterface(bytes4)", MultiToken.CRYPTO_KITTIES_INTERFACE_ID),
+            abi.encode(false)
         );
 
         bool isValid = MultiToken.Asset(MultiToken.Category.ERC20, token, 0, amount).isValid();

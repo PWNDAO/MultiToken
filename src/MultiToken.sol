@@ -360,12 +360,19 @@ library MultiToken {
 
             // ERC20 has optional ERC165 implementation
             if (asset.assetAddress.supportsERC165()) {
-                // If ERC20 implements ERC165, it has to return true for its interface id
-                return asset.assetAddress.supportsERC165InterfaceUnchecked(ERC20_INTERFACE_ID);
+                // If contract implements ERC165 and returns true for ERC20 intefrace id, consider it a correct category
+                if (asset.assetAddress.supportsERC165InterfaceUnchecked(ERC20_INTERFACE_ID))
+                    return true;
+
+                // If contract implements ERC165, it has to return false for ERC721 and ERC1155 and CryptoKitties interface ids
+                return
+                    asset.assetAddress.supportsERC165InterfaceUnchecked(ERC721_INTERFACE_ID) == false &&
+                    asset.assetAddress.supportsERC165InterfaceUnchecked(ERC1155_INTERFACE_ID) == false &&
+                    asset.assetAddress.supportsERC165InterfaceUnchecked(CRYPTO_KITTIES_INTERFACE_ID) == false;
 
             } else {
                 // In case token doesn't implement ERC165, its safe to assume that provided category is correct,
-                // because any other category have to implement ERC165.
+                // because any other category has to implement ERC165.
 
                 // Check that asset address is contract
                 // Tip: asset address will return code length 0, if this code is called from the asset constructor
