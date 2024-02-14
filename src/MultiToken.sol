@@ -11,6 +11,10 @@ import { ERC165Checker } from "@openzeppelin/utils/introspection/ERC165Checker.s
 import { ICryptoKitties } from "@MT/interfaces/ICryptoKitties.sol";
 
 
+/**
+ * @title MultiToken library
+ * @dev Library for handling various token standards (ERC20, ERC721, ERC1155, CryptoKitties) in a single contract.
+ */
 library MultiToken {
     using ERC165Checker for address;
     using SafeERC20 for IERC20;
@@ -19,6 +23,11 @@ library MultiToken {
     bytes4 public constant ERC721_INTERFACE_ID = 0x80ac58cd;
     bytes4 public constant ERC1155_INTERFACE_ID = 0xd9b67a26;
     bytes4 public constant CRYPTO_KITTIES_INTERFACE_ID = 0x9a20483d;
+
+    /**
+    * @notice A reserved value for a category not registered.
+    */
+    uint8 public constant CATEGORY_NOT_REGISTERED = type(uint8).max;
 
     /**
      * @title Category
@@ -45,27 +54,63 @@ library MultiToken {
         uint256 amount;
     }
 
+    /**
+     * @notice Thrown when unsupported category is used.
+     * @param categoryValue Value of the unsupported category.
+     */
+    error UnsupportedCategory(uint8 categoryValue);
 
     /*----------------------------------------------------------*|
     |*  # FACTORY FUNCTIONS                                     *|
     |*----------------------------------------------------------*/
 
+    /**
+     * @notice Factory function for creating an ERC20 asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param amount Amount of fungible tokens.
+     * @return Asset struct representing the ERC20 asset.
+     */
     function ERC20(address assetAddress, uint256 amount) internal pure returns (Asset memory) {
         return Asset(Category.ERC20, assetAddress, 0, amount);
     }
 
+    /**
+     * @notice Factory function for creating an ERC721 asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id Token id of an NFT.
+     * @return Asset struct representing the ERC721 asset.
+     */
     function ERC721(address assetAddress, uint256 id) internal pure returns (Asset memory) {
         return Asset(Category.ERC721, assetAddress, id, 0);
     }
 
+    /**
+     * @notice Factory function for creating an ERC1155 asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id Token id of an SFT.
+     * @param amount Amount of semifungible tokens.
+     * @return Asset struct representing the ERC1155 asset.
+     */
     function ERC1155(address assetAddress, uint256 id, uint256 amount) internal pure returns (Asset memory) {
         return Asset(Category.ERC1155, assetAddress, id, amount);
     }
 
+    /**
+     * @notice Factory function for creating an ERC1155 NFT asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id Token id of an NFT.
+     * @return Asset struct representing the ERC1155 NFT asset.
+     */
     function ERC1155(address assetAddress, uint256 id) internal pure returns (Asset memory) {
         return Asset(Category.ERC1155, assetAddress, id, 0);
     }
 
+    /**
+     * @notice Factory function for creating a CryptoKitties asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id Token id of a CryptoKitty.
+     * @return Asset struct representing the CryptoKitties asset.
+     */
     function CryptoKitties(address assetAddress, uint256 id) internal pure returns (Asset memory) {
         return Asset(Category.CryptoKitties, assetAddress, id, 0);
     }
@@ -76,9 +121,8 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * transferAssetFrom
-     * @dev Wrapping function for `transferFrom` calls on various token interfaces.
-     *      If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
+     * @notice Wrapping function for `transferFrom` calls on various token interfaces.
+     * @dev If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
@@ -88,9 +132,8 @@ library MultiToken {
     }
 
     /**
-     * safeTransferAssetFrom
-     * @dev Wrapping function for `safeTransferFrom` calls on various token interfaces.
-     *      If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
+     * @notice Wrapping function for `safeTransferFrom` calls on various token interfaces.
+     * @dev If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
@@ -127,11 +170,10 @@ library MultiToken {
     }
 
     /**
-     * getTransferAmount
-     * @dev Get amount of asset that would be transferred.
-     *      NFTs (ERC721, CryptoKitties & ERC1155 with amount 0) with return 1.
-     *      Fungible tokens will return its amount (ERC20 with 0 amount is valid state).
-     *      In combination with `MultiToken.balanceOf`, `getTransferAmount` can be used to check successful asset transfer.
+     * @notice Get amount of asset that would be transferred.
+     * @dev NFTs (ERC721, CryptoKitties & ERC1155 with amount 0) with return 1.
+     *      Fungible tokens will return its amount (ERC20 with 0 amount is valid).
+     *      In combination with `balanceOf` can be used to check successful asset transfer.
      * @param asset Struct defining all necessary context of a token.
      * @return Number of tokens that would be transferred of the asset.
      */
@@ -150,9 +192,8 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * transferAssetFromCalldata
-     * @dev Wrapping function for `transferFrom` calladata on various token interfaces.
-     *      If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
+     * @notice Wrapping function for `transferFrom` calladata on various token interfaces.
+     * @dev If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
@@ -162,9 +203,8 @@ library MultiToken {
     }
 
     /**
-     * safeTransferAssetFromCalldata
-     * @dev Wrapping function for `safeTransferFrom` calladata on various token interfaces.
-     *      If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
+     * @notice Wrapping function for `safeTransferFrom` calladata on various token interfaces.
+     * @dev If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
@@ -222,8 +262,7 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * permit
-     * @dev Wrapping function for granting approval via permit signature.
+     * @notice Wrapping function for granting approval via permit signature.
      * @param asset Struct defining all necessary context of a token.
      * @param owner Account/address that signed the permit.
      * @param spender Account/address that would be granted approval to `asset`.
@@ -283,8 +322,7 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * balanceOf
-     * @dev Wrapping function for checking balances on various token interfaces.
+     * @notice Wrapping function for checking balances on various token interfaces.
      * @param asset Struct defining all necessary context of a token.
      * @param target Target address to be checked.
      */
@@ -312,9 +350,8 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * approveAsset
-     * @dev Wrapping function for `approve` calls on various token interfaces.
-     *      By using `safeApprove` for ERC20, caller can set allowance to 0 or from 0.
+     * @notice Wrapping function for `approve` calls on various token interfaces.
+     * @dev By using `safeApprove` for ERC20, caller can set allowance to 0 or from 0.
      *      Cannot set non-zero value if allowance is also non-zero.
      * @param asset Struct defining all necessary context of a token.
      * @param target Account/address that would be granted approval to `asset`.
@@ -405,8 +442,7 @@ library MultiToken {
     }
 
     /**
-     * isSameAs
-     * @dev Compare two assets, ignoring their amounts.
+     * @notice Compare two assets, ignoring their amounts.
      * @param asset First asset to examine.
      * @param otherAsset Second asset to examine.
      * @return True if both structs represents the same asset.
@@ -417,4 +453,5 @@ library MultiToken {
             asset.assetAddress == otherAsset.assetAddress &&
             asset.id == otherAsset.id;
     }
+
 }
