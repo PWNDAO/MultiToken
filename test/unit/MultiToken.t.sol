@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
-import "@openzeppelin/token/ERC20/extensions/draft-IERC20Permit.sol";
-import "@openzeppelin/interfaces/IERC20.sol";
-import "@openzeppelin/interfaces/IERC721.sol";
-import "@openzeppelin/interfaces/IERC1155.sol";
+import { IERC20 } from "@openzeppelin/interfaces/IERC20.sol";
+import { IERC721 } from "@openzeppelin/interfaces/IERC721.sol";
+import { IERC1155 } from "@openzeppelin/interfaces/IERC1155.sol";
+import { IERC20Permit } from "@openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 
-import "@MT/interfaces/ICryptoKitties.sol";
-import "@MT/MultiToken.sol";
+import { MultiToken, ICryptoKitties } from "@MT/MultiToken.sol";
 
 
 abstract contract MultiTokenTest is Test {
