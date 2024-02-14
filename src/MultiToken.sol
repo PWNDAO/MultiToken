@@ -9,6 +9,7 @@ import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { ERC165Checker } from "@openzeppelin/utils/introspection/ERC165Checker.sol";
 
 import { ICryptoKitties } from "@MT/interfaces/ICryptoKitties.sol";
+import { IMultiTokenCategoryRegistry } from "@MT/interfaces/IMultiTokenCategoryRegistry.sol";
 
 
 /**
@@ -380,21 +381,57 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * isValid
-     * @dev Checks that provided asset is contract, has correct format and stated category.
-     *      Fungible tokens (ERC20) have to have id = 0.
+     * @notice Checks that provided asset is contract, has correct format and stated category via MultiTokenCategoryRegistry and ERC165 checks.
+     * @dev Fungible tokens (ERC20) have to have id = 0.
+     *      NFT (ERC721, CryptoKitties) tokens have to have amount = 0.
+     *      Correct asset category is determined via ERC165.
+     *      The check assumes, that asset contract implements only one token standard at a time.
+     * @param registry Category registry contract.
+     * @param asset Asset that is examined.
+     * @return True if asset has correct format and category.
+     */
+    function isValid(Asset memory asset, IMultiTokenCategoryRegistry registry) internal view returns (bool) {
+        return _checkCategory(asset, registry) && _checkFormat(asset);
+    }
+
+    /**
+     * @notice Checks that provided asset is contract, has correct format and stated category via ERC165 checks.
+     * @dev Fungible tokens (ERC20) have to have id = 0.
      *      NFT (ERC721, CryptoKitties) tokens have to have amount = 0.
      *      Correct asset category is determined via ERC165.
      *      The check assumes, that asset contract implements only one token standard at a time.
      * @param asset Asset that is examined.
-     * @return True if assets amount and id is valid in stated category.
+     * @return True if asset has correct format and category.
      */
     function isValid(Asset memory asset) internal view returns (bool) {
-        if (asset.category == Category.ERC20) {
-            // Check format
-            if (asset.id != 0)
-                return false;
+        return _checkCategoryViaERC165(asset) && _checkFormat(asset);
+    }
 
+    /**
+     * @notice Checks that provided asset is contract and stated category is correct via MultiTokenCategoryRegistry and ERC165 checks.
+     * @dev Will fallback to ERC165 checks if asset is not registered in the category registry.
+     *      The check assumes, that asset contract implements only one token standard at a time.
+     * @param registry Category registry contract.
+     * @param asset Asset that is examined.
+     * @return True if assets stated category is correct.
+     */
+    function _checkCategory(Asset memory asset, IMultiTokenCategoryRegistry registry) internal view returns (bool) {
+        // Check if asset is registered in the category registry
+        uint8 categoryValue = registry.registeredCategoryValue(asset.assetAddress);
+        if (categoryValue != CATEGORY_NOT_REGISTERED)
+            return uint8(asset.category) == categoryValue;
+
+        return _checkCategoryViaERC165(asset);
+    }
+
+    /**
+     * @notice Checks that provided asset is contract and stated category is correct via ERC165 checks.
+     * @dev The check assumes, that asset contract implements only one token standard at a time.
+     * @param asset Asset that is examined.
+     * @return True if assets stated category is correct.
+     */
+    function _checkCategoryViaERC165(Asset memory asset) internal view returns (bool) {
+        if (asset.category == Category.ERC20) {
             // ERC20 has optional ERC165 implementation
             if (asset.assetAddress.supportsERC165()) {
                 // If contract implements ERC165 and returns true for ERC20 intefrace id, consider it a correct category
@@ -412,33 +449,56 @@ library MultiToken {
                 // because any other category has to implement ERC165.
 
                 // Check that asset address is contract
-                // Tip: asset address will return code length 0, if this code is called from the asset constructor
+                // Note: Asset address will return code length 0, if this code is called from the constructor.
                 return asset.assetAddress.code.length > 0;
             }
 
         } else if (asset.category == Category.ERC721) {
-            // Check format
-            if (asset.amount != 0)
-                return false;
-
-            // Check it's ERC721 via ERC165
+            // Check ERC721 via ERC165
             return asset.assetAddress.supportsInterface(ERC721_INTERFACE_ID);
 
         } else if (asset.category == Category.ERC1155) {
-            // Check it's ERC1155 via ERC165
+            // Check ERC1155 via ERC165
             return asset.assetAddress.supportsInterface(ERC1155_INTERFACE_ID);
 
         } else if (asset.category == Category.CryptoKitties) {
-            // Check format
-            if (asset.amount != 0)
-                return false;
-
-            // Check it's CryptoKitties via ERC165
+            // Check CryptoKitties via ERC165
             return asset.assetAddress.supportsInterface(CRYPTO_KITTIES_INTERFACE_ID);
 
         } else {
-            revert("MultiToken: Unsupported category");
+            revert UnsupportedCategory(uint8(asset.category));
         }
+    }
+
+    /**
+     * @notice Checks that provided asset has correct format.
+     * @dev Fungible tokens (ERC20) have to have id = 0.
+     *      NFT (ERC721, CryptoKitties) tokens have to have amount = 0.
+     *      Correct asset category is determined via ERC165.
+     * @param asset Asset that is examined.
+     * @return True asset struct has correct format.
+     */
+    function _checkFormat(Asset memory asset) internal pure returns (bool) {
+        if (asset.category == Category.ERC20) {
+            // Id must be 0 for ERC20
+            if (asset.id != 0) return false;
+
+        } else if (asset.category == Category.ERC721) {
+            // Amount must be 0 for ERC721
+            if (asset.amount != 0) return false;
+
+        } else if (asset.category == Category.ERC1155) {
+            // No format check for ERC1155
+
+        } else if (asset.category == Category.CryptoKitties) {
+            // Amount must be 0 for CryptoKitties
+            if (asset.amount != 0) return false;
+
+        } else {
+            revert UnsupportedCategory(uint8(asset.category));
+        }
+
+        return true;
     }
 
     /**
