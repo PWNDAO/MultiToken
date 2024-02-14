@@ -3,7 +3,7 @@ pragma solidity 0.8.16;
 
 import { Test } from "forge-std/Test.sol";
 
-import { MultiTokenCategoryRegistry } from "@MT/MultiTokenCategoryRegistry.sol";
+import { MultiTokenCategoryRegistry, IMultiTokenCategoryRegistry } from "@MT/MultiTokenCategoryRegistry.sol";
 
 
 abstract contract MultiTokenCategoryRegistryTest is Test {
@@ -27,17 +27,17 @@ abstract contract MultiTokenCategoryRegistryTest is Test {
 
 
 /*----------------------------------------------------------*|
-|*  # REGISTER CATEGORY                                     *|
+|*  # REGISTER CATEGORY VALUE                               *|
 |*----------------------------------------------------------*/
 
-contract MultiTokenCategoryRegistry_RegisterCategory_Test is MultiTokenCategoryRegistryTest {
+contract MultiTokenCategoryRegistry_RegisterCategoryValue_Test is MultiTokenCategoryRegistryTest {
 
     function test_shouldFail_whenCallerNotOwner() external {
         address notOwner = makeAddr("notOwner");
 
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(notOwner);
-        registry.registerCategory(assetAddress, 7);
+        registry.registerCategoryValue(assetAddress, 7);
     }
 
     function test_shouldFail_whenCategoryMaxUint8Value() external {
@@ -45,14 +45,14 @@ contract MultiTokenCategoryRegistry_RegisterCategory_Test is MultiTokenCategoryR
 
         vm.expectRevert(abi.encodeWithSelector(MultiTokenCategoryRegistry.ReservedCategoryValue.selector));
         vm.prank(owner);
-        registry.registerCategory(assetAddress, CATEGORY_NOT_REGISTERED);
+        registry.registerCategoryValue(assetAddress, CATEGORY_NOT_REGISTERED);
     }
 
     function testFuzz_shouldStore_incrementedCategoryValue(address _assetAddress, uint8 category) external {
         vm.assume(category != type(uint8).max);
 
         vm.prank(owner);
-        registry.registerCategory(_assetAddress, category);
+        registry.registerCategoryValue(_assetAddress, category);
 
         bytes32 categorySlot = keccak256(abi.encode(_assetAddress, REGISTER_CATEGORY_SLOT));
         bytes32 categoryValue = vm.load(address(registry), categorySlot);
@@ -66,24 +66,24 @@ contract MultiTokenCategoryRegistry_RegisterCategory_Test is MultiTokenCategoryR
         emit CategoryRegistered(_assetAddress, category);
 
         vm.prank(owner);
-        registry.registerCategory(_assetAddress, category);
+        registry.registerCategoryValue(_assetAddress, category);
     }
 
 }
 
 
 /*----------------------------------------------------------*|
-|*  # UNREGISTER CATEGORY                                   *|
+|*  # UNREGISTER CATEGORY VALUE                             *|
 |*----------------------------------------------------------*/
 
-contract MultiTokenCategoryRegistry_UnregisterCategory_Test is MultiTokenCategoryRegistryTest {
+contract MultiTokenCategoryRegistry_UnregisterCategoryValue_Test is MultiTokenCategoryRegistryTest {
 
     function test_shouldFail_whenCallerNotOwner() external {
         address notOwner = makeAddr("notOwner");
 
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(notOwner);
-        registry.unregisterCategory(assetAddress);
+        registry.unregisterCategoryValue(assetAddress);
     }
 
     function testFuzz_shouldClearStore(address _assetAddress, uint256 storedCategory) external {
@@ -93,7 +93,7 @@ contract MultiTokenCategoryRegistry_UnregisterCategory_Test is MultiTokenCategor
         vm.store(address(registry), categorySlot, bytes32(storedCategory));
 
         vm.prank(owner);
-        registry.unregisterCategory(_assetAddress);
+        registry.unregisterCategoryValue(_assetAddress);
 
         bytes32 categoryValue = vm.load(address(registry), categorySlot);
         assertEq(categoryValue, bytes32(0));
@@ -104,31 +104,31 @@ contract MultiTokenCategoryRegistry_UnregisterCategory_Test is MultiTokenCategor
         emit CategoryUnregistered(_assetAddress);
 
         vm.prank(owner);
-        registry.unregisterCategory(_assetAddress);
+        registry.unregisterCategoryValue(_assetAddress);
     }
 
 }
 
 
 /*----------------------------------------------------------*|
-|*  # REGISTERED CATEGORY                                   *|
+|*  # REGISTERED CATEGORY VALUE                             *|
 |*----------------------------------------------------------*/
 
-contract MultiTokenCategoryRegistry_RegisteredCategory_Test is MultiTokenCategoryRegistryTest {
+contract MultiTokenCategoryRegistry_RegisteredCategoryValue_Test is MultiTokenCategoryRegistryTest {
 
-    function testFuzz_shouldReturnCategory_whenRegistered(uint256 storedCategory) external {
+    function testFuzz_shouldReturnCategoryValue_whenRegistered(uint256 storedCategory) external {
         vm.assume(storedCategory > 0 && storedCategory <= type(uint8).max);
 
         bytes32 categorySlot = keccak256(abi.encode(assetAddress, REGISTER_CATEGORY_SLOT));
         vm.store(address(registry), categorySlot, bytes32(storedCategory));
 
-        uint8 category = registry.registeredCategory(assetAddress);
+        uint8 category = registry.registeredCategoryValue(assetAddress);
 
         assertEq(category, storedCategory - 1);
     }
 
-    function testFuzz_shouldReturnCategoryNotRegistered_whenNotRegistered(address _assetAddress) external {
-        uint8 category = registry.registeredCategory(_assetAddress);
+    function testFuzz_shouldReturnCategoryNotRegisteredValue_whenNotRegistered(address _assetAddress) external {
+        uint8 category = registry.registeredCategoryValue(_assetAddress);
 
         assertEq(category, registry.CATEGORY_NOT_REGISTERED());
     }
@@ -143,7 +143,7 @@ contract MultiTokenCategoryRegistry_RegisteredCategory_Test is MultiTokenCategor
 contract MultiTokenCategoryRegistry_SupportsInterface_Test is MultiTokenCategoryRegistryTest {
 
     function test_shouldReturnTrue_whenCategoryRegistryInterfaceId() external {
-        bytes4 interfaceId = registry.CATEGORY_REGISTRY_INTERFACE_ID();
+        bytes4 interfaceId = type(IMultiTokenCategoryRegistry).interfaceId;
 
         assertTrue(registry.supportsInterface(interfaceId));
     }
