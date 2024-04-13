@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.16;
 
-import { Ownable2Step } from "@openzeppelin/access/Ownable2Step.sol";
-import { ERC165 } from "@openzeppelin/utils/introspection/ERC165.sol";
+import { Ownable2Step } from "openzeppelin/access/Ownable2Step.sol";
+import { ERC165 } from "openzeppelin/utils/introspection/ERC165.sol";
 
-import { IMultiTokenCategoryRegistry } from "@MT/interfaces/IMultiTokenCategoryRegistry.sol";
+import { IMultiTokenCategoryRegistry } from "src/interfaces/IMultiTokenCategoryRegistry.sol";
 
 /**
  * @title MultiToken Category Registry

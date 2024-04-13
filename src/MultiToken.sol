@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import { IERC20 } from "@openzeppelin/interfaces/IERC20.sol";
-import { IERC721 } from "@openzeppelin/interfaces/IERC721.sol";
-import { IERC1155 } from "@openzeppelin/interfaces/IERC1155.sol";
-import { IERC20Permit } from "@openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
-import { SafeERC20 } from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import { ERC165Checker } from "@openzeppelin/utils/introspection/ERC165Checker.sol";
+import { IERC20 } from "openzeppelin/interfaces/IERC20.sol";
+import { IERC721 } from "openzeppelin/interfaces/IERC721.sol";
+import { IERC1155 } from "openzeppelin/interfaces/IERC1155.sol";
+import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
+import { SafeERC20 } from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import { ERC165Checker } from "openzeppelin/utils/introspection/ERC165Checker.sol";
 
-import { ICryptoKitties } from "@MT/interfaces/ICryptoKitties.sol";
-import { IMultiTokenCategoryRegistry } from "@MT/interfaces/IMultiTokenCategoryRegistry.sol";
+import { ICryptoKitties } from "src/interfaces/ICryptoKitties.sol";
+import { IMultiTokenCategoryRegistry } from "src/interfaces/IMultiTokenCategoryRegistry.sol";
 
 
 /**

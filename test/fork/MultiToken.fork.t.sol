@@ -3,13 +3,13 @@ pragma solidity 0.8.16;
 
 import { Test } from "forge-std/Test.sol";
 
-import { IERC20 } from "@openzeppelin/interfaces/IERC20.sol";
-import { IERC721 } from "@openzeppelin/interfaces/IERC721.sol";
-import { IERC1155 } from "@openzeppelin/interfaces/IERC1155.sol";
-import { ERC1155 } from "@openzeppelin/token/ERC1155/ERC1155.sol";
-import { IERC20Permit } from "@openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
+import { IERC20 } from "openzeppelin/interfaces/IERC20.sol";
+import { IERC721 } from "openzeppelin/interfaces/IERC721.sol";
+import { IERC1155 } from "openzeppelin/interfaces/IERC1155.sol";
+import { ERC1155 } from "openzeppelin/token/ERC1155/ERC1155.sol";
+import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 
-import { MultiToken, ICryptoKitties } from "@MT/MultiToken.sol";
+import { MultiToken, ICryptoKitties } from "src/MultiToken.sol";
 
 
 abstract contract MultiTokenIntegrationTest is Test {
