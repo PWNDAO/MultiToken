@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+/**
+ * @title CryptoKitties Interface
+ * @dev CryptoKitties Interface ID is 0x9a20483d.
+ */
 interface ICryptoKitties {
     // Required methods
     function totalSupply() external view returns (uint256 total);

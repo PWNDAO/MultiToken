@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/interfaces/IERC20.sol";
-import "@openzeppelin/interfaces/IERC721.sol";
-import "@openzeppelin/interfaces/IERC1155.sol";
-import "@openzeppelin/token/ERC20/extensions/draft-IERC20Permit.sol";
-import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/utils/introspection/ERC165Checker.sol";
+import { IERC20 } from "openzeppelin/interfaces/IERC20.sol";
+import { IERC721 } from "openzeppelin/interfaces/IERC721.sol";
+import { IERC1155 } from "openzeppelin/interfaces/IERC1155.sol";
+import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
+import { SafeERC20 } from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import { ERC165Checker } from "openzeppelin/utils/introspection/ERC165Checker.sol";
 
-import "@MT/interfaces/ICryptoKitties.sol";
+import { ICryptoKitties } from "src/interfaces/ICryptoKitties.sol";
+import { IMultiTokenCategoryRegistry } from "src/interfaces/IMultiTokenCategoryRegistry.sol";
 
 
+/**
+ * @title MultiToken library
+ * @dev Library for handling various token standards (ERC20, ERC721, ERC1155, CryptoKitties) in a single contract.
+ */
 library MultiToken {
     using ERC165Checker for address;
     using SafeERC20 for IERC20;
@@ -19,6 +24,11 @@ library MultiToken {
     bytes4 public constant ERC721_INTERFACE_ID = 0x80ac58cd;
     bytes4 public constant ERC1155_INTERFACE_ID = 0xd9b67a26;
     bytes4 public constant CRYPTO_KITTIES_INTERFACE_ID = 0x9a20483d;
+
+    /**
+    * @notice A reserved value for a category not registered.
+    */
+    uint8 public constant CATEGORY_NOT_REGISTERED = type(uint8).max;
 
     /**
      * @title Category
@@ -45,27 +55,63 @@ library MultiToken {
         uint256 amount;
     }
 
+    /**
+     * @notice Thrown when unsupported category is used.
+     * @param categoryValue Value of the unsupported category.
+     */
+    error UnsupportedCategory(uint8 categoryValue);
 
     /*----------------------------------------------------------*|
     |*  # FACTORY FUNCTIONS                                     *|
     |*----------------------------------------------------------*/
 
+    /**
+     * @notice Factory function for creating an ERC20 asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param amount Amount of fungible tokens.
+     * @return Asset struct representing the ERC20 asset.
+     */
     function ERC20(address assetAddress, uint256 amount) internal pure returns (Asset memory) {
         return Asset(Category.ERC20, assetAddress, 0, amount);
     }
 
+    /**
+     * @notice Factory function for creating an ERC721 asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id Token id of an NFT.
+     * @return Asset struct representing the ERC721 asset.
+     */
     function ERC721(address assetAddress, uint256 id) internal pure returns (Asset memory) {
         return Asset(Category.ERC721, assetAddress, id, 0);
     }
 
+    /**
+     * @notice Factory function for creating an ERC1155 asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id Token id of an SFT.
+     * @param amount Amount of semifungible tokens.
+     * @return Asset struct representing the ERC1155 asset.
+     */
     function ERC1155(address assetAddress, uint256 id, uint256 amount) internal pure returns (Asset memory) {
         return Asset(Category.ERC1155, assetAddress, id, amount);
     }
 
+    /**
+     * @notice Factory function for creating an ERC1155 NFT asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id Token id of an NFT.
+     * @return Asset struct representing the ERC1155 NFT asset.
+     */
     function ERC1155(address assetAddress, uint256 id) internal pure returns (Asset memory) {
         return Asset(Category.ERC1155, assetAddress, id, 0);
     }
 
+    /**
+     * @notice Factory function for creating a CryptoKitties asset.
+     * @param assetAddress Address of the token contract defining the asset.
+     * @param id Token id of a CryptoKitty.
+     * @return Asset struct representing the CryptoKitties asset.
+     */
     function CryptoKitties(address assetAddress, uint256 id) internal pure returns (Asset memory) {
         return Asset(Category.CryptoKitties, assetAddress, id, 0);
     }
@@ -76,9 +122,8 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * transferAssetFrom
-     * @dev Wrapping function for `transferFrom` calls on various token interfaces.
-     *      If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
+     * @notice Wrapping function for `transferFrom` calls on various token interfaces.
+     * @dev If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
@@ -88,9 +133,8 @@ library MultiToken {
     }
 
     /**
-     * safeTransferAssetFrom
-     * @dev Wrapping function for `safeTransferFrom` calls on various token interfaces.
-     *      If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
+     * @notice Wrapping function for `safeTransferFrom` calls on various token interfaces.
+     * @dev If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
@@ -127,11 +171,10 @@ library MultiToken {
     }
 
     /**
-     * getTransferAmount
-     * @dev Get amount of asset that would be transferred.
-     *      NFTs (ERC721, CryptoKitties & ERC1155 with amount 0) with return 1.
-     *      Fungible tokens will return its amount (ERC20 with 0 amount is valid state).
-     *      In combination with `MultiToken.balanceOf`, `getTransferAmount` can be used to check successful asset transfer.
+     * @notice Get amount of asset that would be transferred.
+     * @dev NFTs (ERC721, CryptoKitties & ERC1155 with amount 0) with return 1.
+     *      Fungible tokens will return its amount (ERC20 with 0 amount is valid).
+     *      In combination with `balanceOf` can be used to check successful asset transfer.
      * @param asset Struct defining all necessary context of a token.
      * @return Number of tokens that would be transferred of the asset.
      */
@@ -150,9 +193,8 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * transferAssetFromCalldata
-     * @dev Wrapping function for `transferFrom` calladata on various token interfaces.
-     *      If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
+     * @notice Wrapping function for `transferFrom` calladata on various token interfaces.
+     * @dev If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
@@ -162,9 +204,8 @@ library MultiToken {
     }
 
     /**
-     * safeTransferAssetFromCalldata
-     * @dev Wrapping function for `safeTransferFrom` calladata on various token interfaces.
-     *      If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
+     * @notice Wrapping function for `safeTransferFrom` calladata on various token interfaces.
+     * @dev If `fromSender` is true, function `transfer` is returned instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
@@ -222,8 +263,7 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * permit
-     * @dev Wrapping function for granting approval via permit signature.
+     * @notice Wrapping function for granting approval via permit signature.
      * @param asset Struct defining all necessary context of a token.
      * @param owner Account/address that signed the permit.
      * @param spender Account/address that would be granted approval to `asset`.
@@ -283,8 +323,7 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * balanceOf
-     * @dev Wrapping function for checking balances on various token interfaces.
+     * @notice Wrapping function for checking balances on various token interfaces.
      * @param asset Struct defining all necessary context of a token.
      * @param target Target address to be checked.
      */
@@ -312,9 +351,8 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * approveAsset
-     * @dev Wrapping function for `approve` calls on various token interfaces.
-     *      By using `safeApprove` for ERC20, caller can set allowance to 0 or from 0.
+     * @notice Wrapping function for `approve` calls on various token interfaces.
+     * @dev By using `safeApprove` for ERC20, caller can set allowance to 0 or from 0.
      *      Cannot set non-zero value if allowance is also non-zero.
      * @param asset Struct defining all necessary context of a token.
      * @param target Account/address that would be granted approval to `asset`.
@@ -343,63 +381,128 @@ library MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * isValid
-     * @dev Checks that provided asset is contract, has correct format and stated category.
-     *      Fungible tokens (ERC20) have to have id = 0.
+     * @notice Checks that provided asset is contract, has correct format and stated category via MultiTokenCategoryRegistry and ERC165 checks.
+     * @dev Fungible tokens (ERC20) have to have id = 0.
+     *      NFT (ERC721, CryptoKitties) tokens have to have amount = 0.
+     *      Correct asset category is determined via ERC165.
+     *      The check assumes, that asset contract implements only one token standard at a time.
+     * @param registry Category registry contract.
+     * @param asset Asset that is examined.
+     * @return True if asset has correct format and category.
+     */
+    function isValid(Asset memory asset, IMultiTokenCategoryRegistry registry) internal view returns (bool) {
+        return _checkCategory(asset, registry) && _checkFormat(asset);
+    }
+
+    /**
+     * @notice Checks that provided asset is contract, has correct format and stated category via ERC165 checks.
+     * @dev Fungible tokens (ERC20) have to have id = 0.
      *      NFT (ERC721, CryptoKitties) tokens have to have amount = 0.
      *      Correct asset category is determined via ERC165.
      *      The check assumes, that asset contract implements only one token standard at a time.
      * @param asset Asset that is examined.
-     * @return True if assets amount and id is valid in stated category.
+     * @return True if asset has correct format and category.
      */
     function isValid(Asset memory asset) internal view returns (bool) {
-        if (asset.category == Category.ERC20) {
-            // Check format
-            if (asset.id != 0)
-                return false;
+        return _checkCategoryViaERC165(asset) && _checkFormat(asset);
+    }
 
+    /**
+     * @notice Checks that provided asset is contract and stated category is correct via MultiTokenCategoryRegistry and ERC165 checks.
+     * @dev Will fallback to ERC165 checks if asset is not registered in the category registry.
+     *      The check assumes, that asset contract implements only one token standard at a time.
+     * @param registry Category registry contract.
+     * @param asset Asset that is examined.
+     * @return True if assets stated category is correct.
+     */
+    function _checkCategory(Asset memory asset, IMultiTokenCategoryRegistry registry) internal view returns (bool) {
+        // Check if asset is registered in the category registry
+        uint8 categoryValue = registry.registeredCategoryValue(asset.assetAddress);
+        if (categoryValue != CATEGORY_NOT_REGISTERED)
+            return uint8(asset.category) == categoryValue;
+
+        return _checkCategoryViaERC165(asset);
+    }
+
+    /**
+     * @notice Checks that provided asset is contract and stated category is correct via ERC165 checks.
+     * @dev The check assumes, that asset contract implements only one token standard at a time.
+     * @param asset Asset that is examined.
+     * @return True if assets stated category is correct.
+     */
+    function _checkCategoryViaERC165(Asset memory asset) internal view returns (bool) {
+        if (asset.category == Category.ERC20) {
             // ERC20 has optional ERC165 implementation
             if (asset.assetAddress.supportsERC165()) {
-                // If ERC20 implements ERC165, it has to return true for its interface id
-                return asset.assetAddress.supportsERC165InterfaceUnchecked(ERC20_INTERFACE_ID);
+                // If contract implements ERC165 and returns true for ERC20 intefrace id, consider it a correct category
+                if (asset.assetAddress.supportsERC165InterfaceUnchecked(ERC20_INTERFACE_ID))
+                    return true;
+
+                // If contract implements ERC165, it has to return false for ERC721, ERC1155, and CryptoKitties interface ids
+                return
+                    asset.assetAddress.supportsERC165InterfaceUnchecked(ERC721_INTERFACE_ID) == false &&
+                    asset.assetAddress.supportsERC165InterfaceUnchecked(ERC1155_INTERFACE_ID) == false &&
+                    asset.assetAddress.supportsERC165InterfaceUnchecked(CRYPTO_KITTIES_INTERFACE_ID) == false;
 
             } else {
                 // In case token doesn't implement ERC165, its safe to assume that provided category is correct,
-                // because any other category have to implement ERC165.
+                // because any other category has to implement ERC165.
 
                 // Check that asset address is contract
-                // Tip: asset address will return code length 0, if this code is called from the asset constructor
+                // Note: Asset address will return code length 0, if this code is called from the constructor.
                 return asset.assetAddress.code.length > 0;
             }
 
         } else if (asset.category == Category.ERC721) {
-            // Check format
-            if (asset.amount != 0)
-                return false;
-
-            // Check it's ERC721 via ERC165
+            // Check ERC721 via ERC165
             return asset.assetAddress.supportsInterface(ERC721_INTERFACE_ID);
 
         } else if (asset.category == Category.ERC1155) {
-            // Check it's ERC1155 via ERC165
+            // Check ERC1155 via ERC165
             return asset.assetAddress.supportsInterface(ERC1155_INTERFACE_ID);
 
         } else if (asset.category == Category.CryptoKitties) {
-            // Check format
-            if (asset.amount != 0)
-                return false;
-
-            // Check it's CryptoKitties via ERC165
+            // Check CryptoKitties via ERC165
             return asset.assetAddress.supportsInterface(CRYPTO_KITTIES_INTERFACE_ID);
 
         } else {
-            revert("MultiToken: Unsupported category");
+            revert UnsupportedCategory(uint8(asset.category));
         }
     }
 
     /**
-     * isSameAs
-     * @dev Compare two assets, ignoring their amounts.
+     * @notice Checks that provided asset has correct format.
+     * @dev Fungible tokens (ERC20) have to have id = 0.
+     *      NFT (ERC721, CryptoKitties) tokens have to have amount = 0.
+     *      Correct asset category is determined via ERC165.
+     * @param asset Asset that is examined.
+     * @return True asset struct has correct format.
+     */
+    function _checkFormat(Asset memory asset) internal pure returns (bool) {
+        if (asset.category == Category.ERC20) {
+            // Id must be 0 for ERC20
+            if (asset.id != 0) return false;
+
+        } else if (asset.category == Category.ERC721) {
+            // Amount must be 0 for ERC721
+            if (asset.amount != 0) return false;
+
+        } else if (asset.category == Category.ERC1155) {
+            // No format check for ERC1155
+
+        } else if (asset.category == Category.CryptoKitties) {
+            // Amount must be 0 for CryptoKitties
+            if (asset.amount != 0) return false;
+
+        } else {
+            revert UnsupportedCategory(uint8(asset.category));
+        }
+
+        return true;
+    }
+
+    /**
+     * @notice Compare two assets, ignoring their amounts.
      * @param asset First asset to examine.
      * @param otherAsset Second asset to examine.
      * @return True if both structs represents the same asset.
@@ -410,4 +513,5 @@ library MultiToken {
             asset.assetAddress == otherAsset.assetAddress &&
             asset.id == otherAsset.id;
     }
+
 }

@@ -4,6 +4,7 @@ It wraps transfer, allowance & balance check calls of the following token standa
 - ERC20
 - ERC721
 - ERC1155
+- CryptoKitties
 
 Unifying the function calls used within the PWN context (not having to worry about handling those individually).
 

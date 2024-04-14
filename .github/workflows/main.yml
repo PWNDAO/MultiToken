@@ -26,4 +26,4 @@ jobs:
         run: forge test --match-path test/unit/MultiToken.t.sol
 
       - name: Run integration tests
-        run: forge test --match-path test/integration/Integration.t.sol
+        run: forge test --match-path test/fork/MultiToken.fork.t.sol
