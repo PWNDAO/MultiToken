@@ -440,9 +440,9 @@ library MultiToken {
 
                 // If contract implements ERC165, it has to return false for ERC721, ERC1155, and CryptoKitties interface ids
                 return
-                    asset.assetAddress.supportsERC165InterfaceUnchecked(ERC721_INTERFACE_ID) == false &&
-                    asset.assetAddress.supportsERC165InterfaceUnchecked(ERC1155_INTERFACE_ID) == false &&
-                    asset.assetAddress.supportsERC165InterfaceUnchecked(CRYPTO_KITTIES_INTERFACE_ID) == false;
+                    !asset.assetAddress.supportsERC165InterfaceUnchecked(ERC721_INTERFACE_ID) &&
+                    !asset.assetAddress.supportsERC165InterfaceUnchecked(ERC1155_INTERFACE_ID) &&
+                    !asset.assetAddress.supportsERC165InterfaceUnchecked(CRYPTO_KITTIES_INTERFACE_ID);
 
             } else {
                 // In case token doesn't implement ERC165, its safe to assume that provided category is correct,
