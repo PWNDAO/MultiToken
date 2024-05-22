@@ -8,7 +8,7 @@ import { IERC721 } from "openzeppelin/interfaces/IERC721.sol";
 import { IERC1155 } from "openzeppelin/interfaces/IERC1155.sol";
 import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 
-import { MultiToken, ICryptoKitties, IMultiTokenCategoryRegistry } from "src/MultiToken.sol";
+import { MultiToken, ICryptoKitties, IMultiTokenCategoryRegistry } from "multitoken/MultiToken.sol";
 
 
 abstract contract MultiTokenTest is Test {

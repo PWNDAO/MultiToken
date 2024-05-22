@@ -3,7 +3,7 @@ pragma solidity 0.8.16;
 
 import { Test } from "forge-std/Test.sol";
 
-import { MultiTokenCategoryRegistry, IMultiTokenCategoryRegistry } from "src/MultiTokenCategoryRegistry.sol";
+import { MultiTokenCategoryRegistry, IMultiTokenCategoryRegistry } from "multitoken/MultiTokenCategoryRegistry.sol";
 
 
 abstract contract MultiTokenCategoryRegistryTest is Test {

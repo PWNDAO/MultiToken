@@ -8,8 +8,8 @@ import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.s
 import { SafeERC20 } from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { ERC165Checker } from "openzeppelin/utils/introspection/ERC165Checker.sol";
 
-import { ICryptoKitties } from "src/interfaces/ICryptoKitties.sol";
-import { IMultiTokenCategoryRegistry } from "src/interfaces/IMultiTokenCategoryRegistry.sol";
+import { ICryptoKitties } from "multitoken/interfaces/ICryptoKitties.sol";
+import { IMultiTokenCategoryRegistry } from "multitoken/interfaces/IMultiTokenCategoryRegistry.sol";
 
 
 /**
