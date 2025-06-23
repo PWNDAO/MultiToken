@@ -9,7 +9,7 @@ import { IERC1155 } from "openzeppelin/interfaces/IERC1155.sol";
 import { ERC1155 } from "openzeppelin/token/ERC1155/ERC1155.sol";
 import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 
-import { MultiToken, ICryptoKitties } from "multitoken/MultiToken.sol";
+import { MultiToken, Asset, Category, ICryptoKitties } from "multitoken/MultiToken.sol";
 
 
 abstract contract MultiTokenIntegrationTest is Test {
@@ -60,7 +60,7 @@ contract T1155 is ERC1155("test") {
 |*----------------------------------------------------------*/
 
 contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     // ERC20
 
@@ -139,7 +139,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
 
     function test_transferERC20_whenCallerIsNotSource() external {
         bool success;
-        MultiToken.Asset memory asset;
+        Asset memory asset;
 
         // WETH - transfer & transferFrom returning bool
         vm.prank(WETH); // Assuming WETH contract has at least `amount` tokens
@@ -269,7 +269,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
         T1155 t1155 = new T1155();
         t1155.mint(chandler, id, amount);
 
-        MultiToken.Asset memory asset = MultiToken.ERC1155(address(t1155), id, 0);
+        Asset memory asset = MultiToken.ERC1155(address(t1155), id, 0);
 
         vm.prank(chandler);
         asset.approveAsset(address(this));
@@ -294,7 +294,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
         T1155 t1155 = new T1155();
         t1155.mint(chandler, id, amount);
 
-        MultiToken.Asset memory asset = MultiToken.ERC1155(address(t1155), id, amount);
+        Asset memory asset = MultiToken.ERC1155(address(t1155), id, amount);
 
         vm.prank(chandler);
         asset.approveAsset(address(this));
@@ -337,7 +337,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
     }
 
     function test_transferCryptoKitties_whenCallerIsNotSource() external {
-        MultiToken.Asset memory asset = MultiToken.CryptoKitties(CK, id);
+        Asset memory asset = MultiToken.CryptoKitties(CK, id);
         address trueOwner = ICryptoKitties(CK).ownerOf(id);
         vm.prank(trueOwner);
         ICryptoKitties(CK).transfer(chandler, id);
@@ -367,7 +367,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_Permit_IntegrationTest is MultiTokenIntegrationTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
 
     function _signPermit() private returns (uint8 v, bytes32 r, bytes32 s) {
@@ -428,7 +428,7 @@ contract MultiToken_Permit_IntegrationTest is MultiTokenIntegrationTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_Approve_IntegrationTest is MultiTokenIntegrationTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
 
     function test_approveAmount_whenERC20() external {
@@ -472,7 +472,7 @@ contract MultiToken_Approve_IntegrationTest is MultiTokenIntegrationTest {
 
     // CryptoKitties doesn't implement `getApproved` function. The approve is tested by a transfer.
     function test_approveId_whenCryptoKitties() external {
-        MultiToken.Asset memory asset = MultiToken.CryptoKitties(CK, id);
+        Asset memory asset = MultiToken.CryptoKitties(CK, id);
         address trueOwner = ICryptoKitties(CK).ownerOf(id);
         vm.prank(trueOwner);
         ICryptoKitties(CK).transfer(chandler, id);
@@ -500,7 +500,7 @@ contract MultiToken_Approve_IntegrationTest is MultiTokenIntegrationTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_IsValid_IntegrationTest is MultiTokenIntegrationTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     address t1155;
 
@@ -514,31 +514,31 @@ contract MultiToken_IsValid_IntegrationTest is MultiTokenIntegrationTest {
 
     function test_returnTrue_whenValidERC20() external {
         assertTrue(
-            MultiToken.Asset(MultiToken.Category.ERC20, USDC, 0, amount).isValid()
+            Asset(Category.ERC20, USDC, 0, amount).isValid()
         );
     }
 
     function test_returnFalse_whenERC20_withNonZeroId() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC20, USDC, id, amount).isValid()
+            Asset(Category.ERC20, USDC, id, amount).isValid()
         );
     }
 
     function test_returnFalse_whenERC20_withERC721Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC721, USDC, id, 0).isValid()
+            Asset(Category.ERC721, USDC, id, 0).isValid()
         );
     }
 
     function test_returnFalse_whenERC20_withERC1155Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC1155, USDC, id, amount).isValid()
+            Asset(Category.ERC1155, USDC, id, amount).isValid()
         );
     }
 
     function test_returnFalse_whenERC20_withCryptoKittiesCategory() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.CryptoKitties, USDC, id, 0).isValid()
+            Asset(Category.CryptoKitties, USDC, id, 0).isValid()
         );
     }
 
@@ -546,31 +546,31 @@ contract MultiToken_IsValid_IntegrationTest is MultiTokenIntegrationTest {
 
     function test_returnTrue_whenValidERC721() external {
         assertTrue(
-            MultiToken.Asset(MultiToken.Category.ERC721, DOODLE, id, 0).isValid()
+            Asset(Category.ERC721, DOODLE, id, 0).isValid()
         );
     }
 
     function test_returnFalse_whenERC721_withNonZeroAmount() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC721, DOODLE, id, 1).isValid()
+            Asset(Category.ERC721, DOODLE, id, 1).isValid()
         );
     }
 
     function test_returnFalse_whenERC721_withERC20Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC20, DOODLE, 0, amount).isValid()
+            Asset(Category.ERC20, DOODLE, 0, amount).isValid()
         );
     }
 
     function test_returnFalse_whenERC721_withERC1155Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC1155, DOODLE, id, amount).isValid()
+            Asset(Category.ERC1155, DOODLE, id, amount).isValid()
         );
     }
 
     function test_returnFalse_whenERC721_withCryptoKittiesCategory() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.CryptoKitties, DOODLE, id, 0).isValid()
+            Asset(Category.CryptoKitties, DOODLE, id, 0).isValid()
         );
     }
 
@@ -578,25 +578,25 @@ contract MultiToken_IsValid_IntegrationTest is MultiTokenIntegrationTest {
 
     function test_returnTrue_whenValidERC1155() external {
         assertTrue(
-            MultiToken.Asset(MultiToken.Category.ERC1155, t1155, id, amount).isValid()
+            Asset(Category.ERC1155, t1155, id, amount).isValid()
         );
     }
 
     function test_returnFalse_whenERC1155_withERC20Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC20, t1155, 0, amount).isValid()
+            Asset(Category.ERC20, t1155, 0, amount).isValid()
         );
     }
 
     function test_returnFalse_whenERC1155_withERC721Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC721, t1155, id, 0).isValid()
+            Asset(Category.ERC721, t1155, id, 0).isValid()
         );
     }
 
     function test_returnFalse_whenERC1155_withCryptoKittiesCategory() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.CryptoKitties, t1155, id, 0).isValid()
+            Asset(Category.CryptoKitties, t1155, id, 0).isValid()
         );
     }
 
@@ -604,31 +604,31 @@ contract MultiToken_IsValid_IntegrationTest is MultiTokenIntegrationTest {
 
     function test_returnTrue_whenValidCryptoKitties() external {
         assertTrue(
-            MultiToken.Asset(MultiToken.Category.CryptoKitties, CK, id, 0).isValid()
+            Asset(Category.CryptoKitties, CK, id, 0).isValid()
         );
     }
 
     function test_returnFalse_whenCryptoKitties_withNonZeroAmount() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.CryptoKitties, CK, id, 1).isValid()
+            Asset(Category.CryptoKitties, CK, id, 1).isValid()
         );
     }
 
     function test_returnFalse_whenCryptoKitties_withERC20Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC20, CK, 0, amount).isValid()
+            Asset(Category.ERC20, CK, 0, amount).isValid()
         );
     }
 
     function test_returnFalse_whenCryptoKitties_withERC721Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC721, CK, id, 0).isValid()
+            Asset(Category.ERC721, CK, id, 0).isValid()
         );
     }
 
     function test_returnFalse_whenCryptoKitties_withERC1155Category() external {
         assertFalse(
-            MultiToken.Asset(MultiToken.Category.ERC1155, CK, id, amount).isValid()
+            Asset(Category.ERC1155, CK, id, amount).isValid()
         );
     }
 

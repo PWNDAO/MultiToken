@@ -11,6 +11,8 @@ import { ERC165Checker } from "openzeppelin/utils/introspection/ERC165Checker.so
 import { ICryptoKitties } from "multitoken/interfaces/ICryptoKitties.sol";
 import { IMultiTokenCategoryRegistry } from "multitoken/interfaces/IMultiTokenCategoryRegistry.sol";
 
+import { Asset, Category } from "multitoken/Asset.sol";
+
 
 /**
  * @title MultiToken library
@@ -29,31 +31,6 @@ library MultiToken {
     * @notice A reserved value for a category not registered.
     */
     uint8 public constant CATEGORY_NOT_REGISTERED = type(uint8).max;
-
-    /**
-     * @title Category
-     * @dev Enum representation Asset category.
-     */
-    enum Category {
-        ERC20,
-        ERC721,
-        ERC1155,
-        CryptoKitties
-    }
-
-    /**
-     * @title Asset
-     * @param category Corresponding asset category.
-     * @param assetAddress Address of the token contract defining the asset.
-     * @param id TokenID of an NFT or 0.
-     * @param amount Amount of fungible tokens or 0 -> 1.
-     */
-    struct Asset {
-        Category category;
-        address assetAddress;
-        uint256 id;
-        uint256 amount;
-    }
 
     /**
      * @notice Thrown when unsupported category is used.

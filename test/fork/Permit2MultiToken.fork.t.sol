@@ -4,12 +4,13 @@ pragma solidity 0.8.16;
 import { Test } from "forge-std/Test.sol";
 
 import {
-    Permit2MultiToken,
+    Permit2MultiToken, Asset, Category,
+
     IERC20, IPermit2Like
 } from "multitoken/Permit2MultiToken.sol";
 
 using Permit2MultiToken for address;
-using Permit2MultiToken for Permit2MultiToken.Asset;
+using Permit2MultiToken for Asset;
 
 abstract contract Permit2MultiTokenIntegrationTest is Test {
 

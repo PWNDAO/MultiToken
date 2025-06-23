@@ -8,7 +8,7 @@ import { IERC721 } from "openzeppelin/interfaces/IERC721.sol";
 import { IERC1155 } from "openzeppelin/interfaces/IERC1155.sol";
 import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 
-import { MultiToken, ICryptoKitties, IMultiTokenCategoryRegistry } from "multitoken/MultiToken.sol";
+import { MultiToken, Asset, Category, ICryptoKitties, IMultiTokenCategoryRegistry } from "multitoken/MultiToken.sol";
 
 import { MultiTokenHarness } from "test/harness/MultiTokenHarness.sol";
 
@@ -22,7 +22,7 @@ abstract contract MultiTokenTest is Test {
     uint256 id = 373733;
     uint256 amount = 101e18;
 
-    MultiToken.Asset asset;
+    Asset asset;
     IMultiTokenCategoryRegistry registry = IMultiTokenCategoryRegistry(makeAddr("registry"));
     MultiTokenHarness harness = new MultiTokenHarness();
 
@@ -66,45 +66,45 @@ abstract contract MultiTokenTest is Test {
 contract MultiToken_FactoryFunctions_Test is MultiTokenTest {
 
     function testFuzz_shouldReturnERC20(address assetAddress, uint256 _amount) external {
-        MultiToken.Asset memory asset = MultiToken.ERC20(assetAddress, _amount);
+        Asset memory asset = MultiToken.ERC20(assetAddress, _amount);
 
-        assertTrue(asset.category == MultiToken.Category.ERC20);
+        assertTrue(asset.category == Category.ERC20);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, 0);
         assertEq(asset.amount, _amount);
     }
 
     function test_shouldReturnERC721(address assetAddress, uint256 _id) external {
-        MultiToken.Asset memory asset = MultiToken.ERC721(assetAddress, _id);
+        Asset memory asset = MultiToken.ERC721(assetAddress, _id);
 
-        assertTrue(asset.category == MultiToken.Category.ERC721);
+        assertTrue(asset.category == Category.ERC721);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, _id);
         assertEq(asset.amount, 0);
     }
 
     function test_shouldReturnERC1155_withZeroAmount(address assetAddress, uint256 _id) external {
-        MultiToken.Asset memory asset = MultiToken.ERC1155(assetAddress, _id);
+        Asset memory asset = MultiToken.ERC1155(assetAddress, _id);
 
-        assertTrue(asset.category == MultiToken.Category.ERC1155);
+        assertTrue(asset.category == Category.ERC1155);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, _id);
         assertEq(asset.amount, 0);
     }
 
     function test_shouldReturnERC1155(address assetAddress, uint256 _id, uint256 _amount) external {
-        MultiToken.Asset memory asset = MultiToken.ERC1155(assetAddress, _id, _amount);
+        Asset memory asset = MultiToken.ERC1155(assetAddress, _id, _amount);
 
-        assertTrue(asset.category == MultiToken.Category.ERC1155);
+        assertTrue(asset.category == Category.ERC1155);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, _id);
         assertEq(asset.amount, _amount);
     }
 
     function test_shouldReturnCryptoKitties(address assetAddress, uint256 _id) external {
-        MultiToken.Asset memory asset = MultiToken.CryptoKitties(assetAddress, _id);
+        Asset memory asset = MultiToken.CryptoKitties(assetAddress, _id);
 
-        assertTrue(asset.category == MultiToken.Category.CryptoKitties);
+        assertTrue(asset.category == Category.CryptoKitties);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, _id);
         assertEq(asset.amount, 0);
@@ -118,7 +118,7 @@ contract MultiToken_FactoryFunctions_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function setUp() external {
         vm.mockCall(
@@ -264,7 +264,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function setUp() external {
         vm.mockCall(
@@ -409,7 +409,7 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_GetTransferAmount_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     // ERC20
 
@@ -462,7 +462,7 @@ contract MultiToken_GetTransferAmount_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function test_shouldReturnTransferCalldata_whenERC20_whenFromSender() external {
         bytes memory _calldata = MultiToken.ERC20(token, amount).transferAssetFromCalldata({
@@ -563,7 +563,7 @@ contract MultiToken_TransferAssetFromCalldata_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function test_shouldReturnTransferCalldata_whenERC20_whenFromSender() external {
         bytes memory _calldata = MultiToken.ERC20(token, amount).safeTransferAssetFromCalldata({
@@ -664,7 +664,7 @@ contract MultiToken_SafeTransferAssetFromCalldata_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_Permit_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     address owner = address(0xaaaa);
     address spender = address(0xbbbb);
@@ -749,7 +749,7 @@ contract MultiToken_Permit_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_BalanceOf_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function test_shouldReturnBalance_whenERC20() external {
         vm.mockCall(
@@ -855,7 +855,7 @@ contract MultiToken_BalanceOf_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_ApproveAsset_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function test_shouldCallApprove_whenERC20() external {
         vm.mockCall(
@@ -908,7 +908,7 @@ contract MultiToken_ApproveAsset_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_IsValidWithRegistry_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function test_shouldReturnTrue_whenCategoryAndFormatCheckReturnTrue() external {
         // category check return false
@@ -936,7 +936,7 @@ contract MultiToken_IsValidWithRegistry_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_IsValidWithoutRegistry_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function test_shouldReturnTrue_whenCategoryViaERC165AndFormatCheckReturnTrue() external {
         // category check return false
@@ -964,12 +964,12 @@ contract MultiToken_IsValidWithoutRegistry_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_CheckCategory_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function testFuzz_shouldReturnTrue_whenCategoryRegistered(uint8 _category) external {
         _category = _category % 4;
         _mockRegistryCategory(_category);
-        asset = MultiToken.Asset(MultiToken.Category(_category), token, id, amount);
+        asset = Asset(Category(_category), token, id, amount);
 
         assertTrue(asset._checkCategory(registry));
     }
@@ -977,7 +977,7 @@ contract MultiToken_CheckCategory_Test is MultiTokenTest {
     function testFuzz_shouldReturnFalse_whenDifferentCategoryRegistered(uint8 _category) external {
         _category = _category % 4;
         _mockRegistryCategory(_category + 1);
-        asset = MultiToken.Asset(MultiToken.Category(_category), token, id, amount);
+        asset = Asset(Category(_category), token, id, amount);
 
         assertFalse(asset._checkCategory(registry));
     }
@@ -991,7 +991,7 @@ contract MultiToken_CheckCategory_Test is MultiTokenTest {
         bool supportsCryptoKitties
     ) external {
         _mockRegistryCategory(type(uint8).max);
-        asset = MultiToken.Asset(MultiToken.Category(_category % 4), token, id, amount);
+        asset = Asset(Category(_category % 4), token, id, amount);
 
         if (supportsERC165) {
             _mockERC165Support(token, MultiToken.ERC20_INTERFACE_ID, supportsERC20);
@@ -1014,7 +1014,7 @@ contract MultiToken_CheckCategory_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_CheckCategoryViaERC165_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function test_shouldReturnFalse_whenZeroAddress() external {
         assertFalse(MultiToken.ERC20(address(0), amount).isValid());
@@ -1099,7 +1099,7 @@ contract MultiToken_CheckCategoryViaERC165_Test is MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract MultiToken_CheckFormat_Test is MultiTokenTest {
-    using MultiToken for MultiToken.Asset;
+    using MultiToken for Asset;
 
     function testFuzz_shouldReturnFalse_whenERC20WithNonZeroId(uint256 _id, uint256 _amount) external {
         vm.assume(_id > 0);
@@ -1163,8 +1163,8 @@ contract MultiToken_IsSameAs_Test is MultiTokenTest {
 
     function test_shouldFail_whenDifferentCategory() external {
         bool isSame = MultiToken.isSameAs(
-            MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 3312, 98e18),
-            MultiToken.Asset(MultiToken.Category.ERC1155, address(0xa66e7), 3312, 98e18)
+            Asset(Category.ERC721, address(0xa66e7), 3312, 98e18),
+            Asset(Category.ERC1155, address(0xa66e7), 3312, 98e18)
         );
 
         assertEq(isSame, false);
@@ -1172,8 +1172,8 @@ contract MultiToken_IsSameAs_Test is MultiTokenTest {
 
     function test_shouldFail_whenDifferentAddress() external {
         bool isSame = MultiToken.isSameAs(
-            MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e701), 3312, 98e18),
-            MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e702), 3312, 98e18)
+            Asset(Category.ERC721, address(0xa66e701), 3312, 98e18),
+            Asset(Category.ERC721, address(0xa66e702), 3312, 98e18)
         );
 
         assertEq(isSame, false);
@@ -1181,8 +1181,8 @@ contract MultiToken_IsSameAs_Test is MultiTokenTest {
 
     function test_shouldFail_whenDifferentId() external {
         bool isSame = MultiToken.isSameAs(
-            MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 1111, 98e18),
-            MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 2222, 98e18)
+            Asset(Category.ERC721, address(0xa66e7), 1111, 98e18),
+            Asset(Category.ERC721, address(0xa66e7), 2222, 98e18)
         );
 
         assertEq(isSame, false);
@@ -1190,8 +1190,8 @@ contract MultiToken_IsSameAs_Test is MultiTokenTest {
 
     function test_shouldPass_whenDifferentAmount() external {
         bool isSame = MultiToken.isSameAs(
-            MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 3312, 1000e18),
-            MultiToken.Asset(MultiToken.Category.ERC721, address(0xa66e7), 3312, 2000e18)
+            Asset(Category.ERC721, address(0xa66e7), 3312, 1000e18),
+            Asset(Category.ERC721, address(0xa66e7), 3312, 2000e18)
         );
 
         assertEq(isSame, true);

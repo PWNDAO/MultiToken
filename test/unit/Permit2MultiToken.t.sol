@@ -4,7 +4,7 @@ pragma solidity 0.8.16;
 import { Test } from "forge-std/Test.sol";
 
 import {
-    Permit2MultiToken, IMultiTokenCategoryRegistry,
+    Permit2MultiToken, IMultiTokenCategoryRegistry, Asset, Category,
     IERC20, IERC20Permit, IERC721, IERC1155, ICryptoKitties
 } from "multitoken/Permit2MultiToken.sol";
 
@@ -21,7 +21,7 @@ abstract contract Permit2MultiTokenTest is Test {
     uint256 id = 373733;
     uint256 amount = 101e18;
 
-    Permit2MultiToken.Asset asset;
+    Asset asset;
     IMultiTokenCategoryRegistry registry = IMultiTokenCategoryRegistry(makeAddr("registry"));
     Permit2MultiTokenHarness harness = new Permit2MultiTokenHarness();
 
@@ -65,45 +65,45 @@ abstract contract Permit2MultiTokenTest is Test {
 contract Permit2MultiToken_FactoryFunctions_Test is Permit2MultiTokenTest {
 
     function testFuzz_shouldReturnERC20(address assetAddress, uint256 _amount) external {
-        Permit2MultiToken.Asset memory asset = Permit2MultiToken.ERC20(assetAddress, _amount);
+        Asset memory asset = Permit2MultiToken.ERC20(assetAddress, _amount);
 
-        assertTrue(asset.category == Permit2MultiToken.Category.ERC20);
+        assertTrue(asset.category == Category.ERC20);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, 0);
         assertEq(asset.amount, _amount);
     }
 
     function test_shouldReturnERC721(address assetAddress, uint256 _id) external {
-        Permit2MultiToken.Asset memory asset = Permit2MultiToken.ERC721(assetAddress, _id);
+        Asset memory asset = Permit2MultiToken.ERC721(assetAddress, _id);
 
-        assertTrue(asset.category == Permit2MultiToken.Category.ERC721);
+        assertTrue(asset.category == Category.ERC721);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, _id);
         assertEq(asset.amount, 0);
     }
 
     function test_shouldReturnERC1155_withZeroAmount(address assetAddress, uint256 _id) external {
-        Permit2MultiToken.Asset memory asset = Permit2MultiToken.ERC1155(assetAddress, _id);
+        Asset memory asset = Permit2MultiToken.ERC1155(assetAddress, _id);
 
-        assertTrue(asset.category == Permit2MultiToken.Category.ERC1155);
+        assertTrue(asset.category == Category.ERC1155);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, _id);
         assertEq(asset.amount, 0);
     }
 
     function test_shouldReturnERC1155(address assetAddress, uint256 _id, uint256 _amount) external {
-        Permit2MultiToken.Asset memory asset = Permit2MultiToken.ERC1155(assetAddress, _id, _amount);
+        Asset memory asset = Permit2MultiToken.ERC1155(assetAddress, _id, _amount);
 
-        assertTrue(asset.category == Permit2MultiToken.Category.ERC1155);
+        assertTrue(asset.category == Category.ERC1155);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, _id);
         assertEq(asset.amount, _amount);
     }
 
     function test_shouldReturnCryptoKitties(address assetAddress, uint256 _id) external {
-        Permit2MultiToken.Asset memory asset = Permit2MultiToken.CryptoKitties(assetAddress, _id);
+        Asset memory asset = Permit2MultiToken.CryptoKitties(assetAddress, _id);
 
-        assertTrue(asset.category == Permit2MultiToken.Category.CryptoKitties);
+        assertTrue(asset.category == Category.CryptoKitties);
         assertEq(asset.assetAddress, assetAddress);
         assertEq(asset.id, _id);
         assertEq(asset.amount, 0);
@@ -117,7 +117,7 @@ contract Permit2MultiToken_FactoryFunctions_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_TransferAssetFrom_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     function setUp() external {
         vm.mockCall(
@@ -257,7 +257,7 @@ contract Permit2MultiToken_TransferAssetFrom_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_SafeTransferAssetFrom_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     function setUp() external {
         vm.mockCall(
@@ -398,7 +398,7 @@ contract Permit2MultiToken_SafeTransferAssetFrom_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_GetTransferAmount_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     // ERC20
 
@@ -452,7 +452,7 @@ contract Permit2MultiToken_GetTransferAmount_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_BalanceOf_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     function test_shouldReturnBalance_whenERC20() external {
         vm.mockCall(
@@ -558,7 +558,7 @@ contract Permit2MultiToken_BalanceOf_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_IsValidWithRegistry_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     function test_shouldReturnTrue_whenCategoryAndFormatCheckReturnTrue() external {
         // category check return false
@@ -586,7 +586,7 @@ contract Permit2MultiToken_IsValidWithRegistry_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_IsValidWithoutRegistry_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     function test_shouldReturnTrue_whenCategoryViaERC165AndFormatCheckReturnTrue() external {
         // category check return false
@@ -614,12 +614,12 @@ contract Permit2MultiToken_IsValidWithoutRegistry_Test is Permit2MultiTokenTest 
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_CheckCategory_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     function testFuzz_shouldReturnTrue_whenCategoryRegistered(uint8 _category) external {
         _category = _category % 4;
         _mockRegistryCategory(_category);
-        asset = Permit2MultiToken.Asset(Permit2MultiToken.Category(_category), token, id, amount);
+        asset = Asset(Category(_category), token, id, amount);
 
         assertTrue(asset._checkCategory(registry));
     }
@@ -627,7 +627,7 @@ contract Permit2MultiToken_CheckCategory_Test is Permit2MultiTokenTest {
     function testFuzz_shouldReturnFalse_whenDifferentCategoryRegistered(uint8 _category) external {
         _category = _category % 4;
         _mockRegistryCategory(_category + 1);
-        asset = Permit2MultiToken.Asset(Permit2MultiToken.Category(_category), token, id, amount);
+        asset = Asset(Category(_category), token, id, amount);
 
         assertFalse(asset._checkCategory(registry));
     }
@@ -641,7 +641,7 @@ contract Permit2MultiToken_CheckCategory_Test is Permit2MultiTokenTest {
         bool supportsCryptoKitties
     ) external {
         _mockRegistryCategory(type(uint8).max);
-        asset = Permit2MultiToken.Asset(Permit2MultiToken.Category(_category % 4), token, id, amount);
+        asset = Asset(Category(_category % 4), token, id, amount);
 
         if (supportsERC165) {
             _mockERC165Support(token, Permit2MultiToken.ERC20_INTERFACE_ID, supportsERC20);
@@ -664,7 +664,7 @@ contract Permit2MultiToken_CheckCategory_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_CheckCategoryViaERC165_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     function test_shouldReturnFalse_whenZeroAddress() external {
         assertFalse(Permit2MultiToken.ERC20(address(0), amount).isValid());
@@ -749,7 +749,7 @@ contract Permit2MultiToken_CheckCategoryViaERC165_Test is Permit2MultiTokenTest 
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_CheckFormat_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Permit2MultiToken.Asset;
+    using Permit2MultiToken for Asset;
 
     function testFuzz_shouldReturnFalse_whenERC20WithNonZeroId(uint256 _id, uint256 _amount) external {
         vm.assume(_id > 0);
@@ -813,8 +813,8 @@ contract Permit2MultiToken_IsSameAs_Test is Permit2MultiTokenTest {
 
     function test_shouldFail_whenDifferentCategory() external {
         bool isSame = Permit2MultiToken.isSameAs(
-            Permit2MultiToken.Asset(Permit2MultiToken.Category.ERC721, address(0xa66e7), 3312, 98e18),
-            Permit2MultiToken.Asset(Permit2MultiToken.Category.ERC1155, address(0xa66e7), 3312, 98e18)
+            Asset(Category.ERC721, address(0xa66e7), 3312, 98e18),
+            Asset(Category.ERC1155, address(0xa66e7), 3312, 98e18)
         );
 
         assertEq(isSame, false);
@@ -822,8 +822,8 @@ contract Permit2MultiToken_IsSameAs_Test is Permit2MultiTokenTest {
 
     function test_shouldFail_whenDifferentAddress() external {
         bool isSame = Permit2MultiToken.isSameAs(
-            Permit2MultiToken.Asset(Permit2MultiToken.Category.ERC721, address(0xa66e701), 3312, 98e18),
-            Permit2MultiToken.Asset(Permit2MultiToken.Category.ERC721, address(0xa66e702), 3312, 98e18)
+            Asset(Category.ERC721, address(0xa66e701), 3312, 98e18),
+            Asset(Category.ERC721, address(0xa66e702), 3312, 98e18)
         );
 
         assertEq(isSame, false);
@@ -831,8 +831,8 @@ contract Permit2MultiToken_IsSameAs_Test is Permit2MultiTokenTest {
 
     function test_shouldFail_whenDifferentId() external {
         bool isSame = Permit2MultiToken.isSameAs(
-            Permit2MultiToken.Asset(Permit2MultiToken.Category.ERC721, address(0xa66e7), 1111, 98e18),
-            Permit2MultiToken.Asset(Permit2MultiToken.Category.ERC721, address(0xa66e7), 2222, 98e18)
+            Asset(Category.ERC721, address(0xa66e7), 1111, 98e18),
+            Asset(Category.ERC721, address(0xa66e7), 2222, 98e18)
         );
 
         assertEq(isSame, false);
@@ -840,8 +840,8 @@ contract Permit2MultiToken_IsSameAs_Test is Permit2MultiTokenTest {
 
     function test_shouldPass_whenDifferentAmount() external {
         bool isSame = Permit2MultiToken.isSameAs(
-            Permit2MultiToken.Asset(Permit2MultiToken.Category.ERC721, address(0xa66e7), 3312, 1000e18),
-            Permit2MultiToken.Asset(Permit2MultiToken.Category.ERC721, address(0xa66e7), 3312, 2000e18)
+            Asset(Category.ERC721, address(0xa66e7), 3312, 1000e18),
+            Asset(Category.ERC721, address(0xa66e7), 3312, 2000e18)
         );
 
         assertEq(isSame, true);
