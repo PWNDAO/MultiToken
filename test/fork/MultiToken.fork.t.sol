@@ -35,6 +35,13 @@ abstract contract MultiTokenIntegrationTest is Test {
 
         (joey, joeyKey) = makeAddrAndKey("joey");
         (chandler, chandlerKey) = makeAddrAndKey("chandler");
+
+        vm.label(WETH, "WETH");
+        vm.label(BNB, "BNB");
+        vm.label(USDT, "USDT");
+        vm.label(CK, "CryptoKitties");
+        vm.label(USDC, "USDC");
+        vm.label(DOODLE, "Doodles");
     }
 
 }
@@ -61,11 +68,13 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
         bool success;
 
         // WETH - transfer & transferFrom returning bool
+        uint256 originalBalanceWETH = IERC20(WETH).balanceOf(address(this));
+
         vm.prank(WETH); // Assuming WETH contract has at least `amount` tokens
         (success, ) = WETH.call(abi.encodeWithSignature("transfer(address,uint256)", address(this), amount));
         require(success, "WETH initial test token transfer failed");
 
-        assertEq(IERC20(WETH).balanceOf(address(this)), amount);
+        assertEq(IERC20(WETH).balanceOf(address(this)), originalBalanceWETH + amount);
         assertEq(IERC20(WETH).balanceOf(chandler), 0);
 
         vm.expectCall(
@@ -77,16 +86,18 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             dest: chandler
         });
 
-        assertEq(IERC20(WETH).balanceOf(address(this)), 0);
+        assertEq(IERC20(WETH).balanceOf(address(this)), originalBalanceWETH);
         assertEq(IERC20(WETH).balanceOf(chandler), amount);
 
 
         // BNB - transfer not returning bool
+        uint256 originalBalanceBNB = IERC20(BNB).balanceOf(address(this));
+
         vm.prank(BNB); // Assuming BNB contract has at least `amount` tokens
         (success, ) = BNB.call(abi.encodeWithSignature("transfer(address,uint256)", address(this), amount));
         require(success, "BNB initial test token transfer failed");
 
-        assertEq(IERC20(BNB).balanceOf(address(this)), amount);
+        assertEq(IERC20(BNB).balanceOf(address(this)), originalBalanceBNB + amount);
         assertEq(IERC20(BNB).balanceOf(chandler), 0);
 
         vm.expectCall(
@@ -98,17 +109,19 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             dest: chandler
         });
 
-        assertEq(IERC20(BNB).balanceOf(address(this)), 0);
+        assertEq(IERC20(BNB).balanceOf(address(this)), originalBalanceBNB);
         assertEq(IERC20(BNB).balanceOf(chandler), amount);
 
 
         // USDT - transfer & transferFrom not returning bool
+        uint256 originalBalanceUSDT = IERC20(USDT).balanceOf(address(this));
+
         address TetherTreasury = 0x5754284f345afc66a98fbB0a0Afe71e0F007B949;
         vm.prank(TetherTreasury); // Assuming Tether treasury contract has at least `amount` tokens
         (success, ) = USDT.call(abi.encodeWithSignature("transfer(address,uint256)", address(this), amount));
         require(success, "USDT initial test token transfer failed");
 
-        assertEq(IERC20(USDT).balanceOf(address(this)), amount);
+        assertEq(IERC20(USDT).balanceOf(address(this)), originalBalanceUSDT + amount);
         assertEq(IERC20(USDT).balanceOf(chandler), 0);
 
         vm.expectCall(
@@ -120,7 +133,7 @@ contract MultiToken_Transfer_IntegrationTest is MultiTokenIntegrationTest {
             dest: chandler
         });
 
-        assertEq(IERC20(USDT).balanceOf(address(this)), 0);
+        assertEq(IERC20(USDT).balanceOf(address(this)), originalBalanceUSDT);
         assertEq(IERC20(USDT).balanceOf(chandler), amount);
     }
 

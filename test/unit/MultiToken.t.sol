@@ -10,6 +10,9 @@ import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.s
 
 import { MultiToken, ICryptoKitties, IMultiTokenCategoryRegistry } from "multitoken/MultiToken.sol";
 
+import { MultiTokenHarness } from "test/harness/MultiTokenHarness.sol";
+
+using MultiToken for address;
 
 abstract contract MultiTokenTest is Test {
 
@@ -21,6 +24,7 @@ abstract contract MultiTokenTest is Test {
 
     MultiToken.Asset asset;
     IMultiTokenCategoryRegistry registry = IMultiTokenCategoryRegistry(makeAddr("registry"));
+    MultiTokenHarness harness = new MultiTokenHarness();
 
     constructor() {
         vm.etch(token, bytes("0x01"));
@@ -143,29 +147,22 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
         });
     }
 
-    // vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
-    function testFail_shouldFail_whenERC20_whenSourceIsThis_whenTransferReturnsFalse() external {
-        vm.clearMockedCalls();
+    function test_shouldFail_whenERC20_whenSourceIsThis_whenTransferReturnsFalse() external {
         vm.mockCall(
             token,
             abi.encodeWithSignature("transfer(address,uint256)", recipient, amount),
             abi.encode(false)
         );
 
-        MultiToken.ERC20(token, amount).transferAssetFrom({
-            source: address(this),
-            dest: recipient
-        });
+        vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+        harness.transferAssetFrom(token.ERC20(amount), address(harness), recipient);
     }
 
-    // vm.expectRevert("Address: call to non-contract");
-    function testFail_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
+    function test_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
-        MultiToken.ERC20(nonContractAddress, amount).transferAssetFrom({
-            source: address(this),
-            dest: recipient
-        });
+        vm.expectRevert("Address: call to non-contract");
+        harness.transferAssetFrom(nonContractAddress.ERC20(amount), address(harness), recipient);
     }
 
     function test_shouldCallTransferFrom_whenERC20_whenSourceIsNotThis() external {
@@ -179,8 +176,7 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
         });
     }
 
-    // vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
-    function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenTransferReturnsFalse() external {
+    function test_shouldFail_whenERC20_whenSourceIsNotThis_whenTransferReturnsFalse() external {
         vm.clearMockedCalls();
         vm.mockCall(
             token,
@@ -188,20 +184,15 @@ contract MultiToken_TransferAssetFrom_Test is MultiTokenTest {
             abi.encode(false)
         );
 
-        MultiToken.ERC20(token, amount).transferAssetFrom({
-            source: source,
-            dest: recipient
-        });
+        vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+        harness.transferAssetFrom(token.ERC20(amount), source, recipient);
     }
 
-    // vm.expectRevert("Address: call to non-contract");
-    function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenCallToNonContractAddress() external {
+    function test_shouldFail_whenERC20_whenSourceIsNotThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
-        MultiToken.ERC20(nonContractAddress, amount).transferAssetFrom({
-            source: source,
-            dest: recipient
-        });
+        vm.expectRevert("Address: call to non-contract");
+        harness.transferAssetFrom(nonContractAddress.ERC20(amount), source, recipient);
     }
 
     // ERC721
@@ -302,29 +293,22 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
         });
     }
 
-    // vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
-    function testFail_shouldFail_whenERC20_whenSourceIsThis_whenTransferReturnsFalse() external {
-        vm.clearMockedCalls();
+    function test_shouldFail_whenERC20_whenSourceIsThis_whenTransferReturnsFalse() external {
         vm.mockCall(
             token,
             abi.encodeWithSignature("transfer(address,uint256)", recipient, amount),
             abi.encode(false)
         );
 
-        MultiToken.ERC20(token, amount).safeTransferAssetFrom({
-            source: address(this),
-            dest: recipient
-        });
+        vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+        harness.safeTransferAssetFrom(token.ERC20(amount), address(harness), recipient);
     }
 
-    // vm.expectRevert("Address: call to non-contract");
-    function testFail_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
+    function test_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
-        MultiToken.ERC20(nonContractAddress, amount).safeTransferAssetFrom({
-            source: address(this),
-            dest: recipient
-        });
+        vm.expectRevert("Address: call to non-contract");
+        harness.safeTransferAssetFrom(nonContractAddress.ERC20(amount), address(harness), recipient);
     }
 
     function test_shouldCallTransferFrom_whenERC20_whenSourceIsNotThis() external {
@@ -338,29 +322,22 @@ contract MultiToken_SafeTransferAssetFrom_Test is MultiTokenTest {
         });
     }
 
-    // vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
-    function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenTransferReturnsFalse() external {
-        vm.clearMockedCalls();
+    function test_shouldFail_whenERC20_whenSourceIsNotThis_whenTransferReturnsFalse() external {
         vm.mockCall(
             token,
             abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, amount),
             abi.encode(false)
         );
 
-        MultiToken.ERC20(token, amount).safeTransferAssetFrom({
-            source: source,
-            dest: recipient
-        });
+        vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
+        harness.safeTransferAssetFrom(token.ERC20(amount), source, recipient);
     }
 
-    // vm.expectRevert("Address: call to non-contract");
-    function testFail_shouldFail_whenERC20_whenSourceIsNotThis_whenCallToNonContractAddress() external {
+    function test_shouldFail_whenERC20_whenSourceIsNotThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
-        MultiToken.ERC20(nonContractAddress, amount).safeTransferAssetFrom({
-            source: source,
-            dest: recipient
-        });
+        vm.expectRevert("Address: call to non-contract");
+        harness.safeTransferAssetFrom(nonContractAddress.ERC20(amount), source, recipient);
     }
 
     // ERC721
@@ -696,29 +673,17 @@ contract MultiToken_Permit_Test is MultiTokenTest {
 
     function test_shouldFail_whenERC721() external {
         vm.expectRevert("MultiToken::Permit: Unsupported category");
-        MultiToken.ERC721(token, 787282).permit({
-            owner: owner,
-            spender: spender,
-            permitData: bytes("permit signature")
-        });
+        harness.permit(token.ERC721(787282), owner, spender, bytes("permit signature"));
     }
 
     function test_shouldFail_whenERC1155() external {
         vm.expectRevert("MultiToken::Permit: Unsupported category");
-        MultiToken.ERC1155(token, 787282).permit({
-            owner: owner,
-            spender: spender,
-            permitData: bytes("permit signature")
-        });
+        harness.permit(token.ERC1155(787282), owner, spender, bytes("permit signature"));
     }
 
     function test_shouldFail_whenPermitWithWrongLength() external {
         vm.expectRevert("MultiToken::Permit: Invalid permit length");
-        MultiToken.ERC20(token, 1).permit({
-            owner: owner,
-            spender: spender,
-            permitData: bytes("permit signature with wrong length")
-        });
+        harness.permit(token.ERC20(1), owner, spender, bytes("permit signature with wrong length"));
     }
 
     function test_shouldPass_whenStandardSignature() external {
