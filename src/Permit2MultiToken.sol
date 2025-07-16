@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import { IERC20 } from "openzeppelin/interfaces/IERC20.sol";
 import { IERC721 } from "openzeppelin/interfaces/IERC721.sol";
 import { IERC1155 } from "openzeppelin/interfaces/IERC1155.sol";
-import { IERC20Permit } from "openzeppelin/token/ERC20/extensions/IERC20Permit.sol";
 import { SafeERC20 } from "openzeppelin/token/ERC20/utils/SafeERC20.sol";
 import { ERC165Checker } from "openzeppelin/utils/introspection/ERC165Checker.sol";
 import { SafeCast } from "openzeppelin/utils/math/SafeCast.sol";
@@ -101,7 +100,7 @@ library Permit2MultiToken {
     |*----------------------------------------------------------*/
 
     /**
-     * @notice Wrapping function for `transferFrom` calls on various token interfaces.
+     * @notice Wrapping function for `transferFrom` calls.
      * @dev If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param permit2 Address of the Permit2 contract to be used for transferring ERC20 tokens.
@@ -109,45 +108,45 @@ library Permit2MultiToken {
      * @param dest Destination address.
      */
     function transferAssetFrom(Asset memory asset, address permit2, address source, address dest) internal {
-        _transferAssetFrom(asset, permit2, source, dest, false);
+        if (asset.category != Category.ERC20) {
+            revert("MultiToken: Unsupported category");
+        }
+
+        if (source == address(this)) {
+            IERC20(asset.assetAddress).safeTransfer(dest, asset.amount);
+        } else {
+            IPermit2Like(permit2).transferFrom(source, dest, asset.amount.toUint160(), asset.assetAddress);
+        }
     }
 
     /**
-     * @notice Wrapping function for `safeTransferFrom` calls on various token interfaces.
+     * @notice Wrapping function for `transferFrom` calls.
      * @dev If `source` is `address(this)`, function `transfer` is called instead of `transferFrom` for ERC20 category.
      * @param asset Struct defining all necessary context of a token.
      * @param permit2 Address of the Permit2 contract to be used for transferring ERC20 tokens.
      * @param source Account/address that provided the allowance.
      * @param dest Destination address.
+     * @param permit PermitTransferFrom struct containing the signed permit data.
+     * @param signature Signature to verify the permit.
      */
-    function safeTransferAssetFrom(Asset memory asset, address permit2, address source, address dest) internal {
-        _transferAssetFrom(asset, permit2, source, dest, true);
-    }
-
-    function _transferAssetFrom(Asset memory asset, address permit2, address source, address dest, bool isSafe) private {
-        if (asset.category == Category.ERC20) {
-            if (source == address(this))
-                IERC20(asset.assetAddress).safeTransfer(dest, asset.amount);
-            else
-                IPermit2Like(permit2).transferFrom(source, dest, asset.amount.toUint160(), asset.assetAddress);
-
-        } else if (asset.category == Category.ERC721) {
-            if (!isSafe)
-                IERC721(asset.assetAddress).transferFrom(source, dest, asset.id);
-            else
-                IERC721(asset.assetAddress).safeTransferFrom(source, dest, asset.id, "");
-
-        } else if (asset.category == Category.ERC1155) {
-            IERC1155(asset.assetAddress).safeTransferFrom(source, dest, asset.id, asset.amount == 0 ? 1 : asset.amount, "");
-
-        } else if (asset.category == Category.CryptoKitties) {
-            if (source == address(this))
-                ICryptoKitties(asset.assetAddress).transfer(dest, asset.id);
-            else
-                ICryptoKitties(asset.assetAddress).transferFrom(source, dest, asset.id);
-
-        } else {
+    function permitTransferAssetFrom(
+        Asset memory asset,
+        address permit2,
+        address source,
+        address dest,
+        IPermit2Like.PermitTransferFrom memory permit,
+        bytes memory signature
+    ) internal {
+        if (asset.category != Category.ERC20) {
             revert("MultiToken: Unsupported category");
+        }
+
+        if (source == address(this)) {
+            IERC20(asset.assetAddress).safeTransfer(dest, asset.amount);
+        } else {
+            IPermit2Like(permit2).permitTransferFrom(
+                permit, IPermit2Like.SignatureTransferDetails(dest, asset.amount), source, signature
+            );
         }
     }
 

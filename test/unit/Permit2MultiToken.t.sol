@@ -5,12 +5,13 @@ import { Test } from "forge-std/Test.sol";
 
 import {
     Permit2MultiToken, IMultiTokenCategoryRegistry, Asset, Category,
-    IERC20, IERC20Permit, IERC721, IERC1155, ICryptoKitties
+    IERC20, IPermit2Like, IERC721, IERC1155, ICryptoKitties
 } from "multitoken/Permit2MultiToken.sol";
 
 import { Permit2MultiTokenHarness } from "test/harness/Permit2MultiTokenHarness.sol";
 
 using Permit2MultiToken for address;
+using Permit2MultiToken for Asset;
 
 abstract contract Permit2MultiTokenTest is Test {
 
@@ -117,7 +118,6 @@ contract Permit2MultiToken_FactoryFunctions_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_TransferAssetFrom_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
 
     function setUp() external {
         vm.mockCall(
@@ -185,79 +185,33 @@ contract Permit2MultiToken_TransferAssetFrom_Test is Permit2MultiTokenTest {
 
     // ERC721
 
-    function test_shouldCallTransferFrom_whenERC721() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
-        );
-        Permit2MultiToken.ERC721(token, id).transferAssetFrom({
-            permit2: permit2,
-            source: source,
-            dest: recipient
-        });
-    }
+    function test_shouldFail_forUnsupportedCategory() external {
+        Asset memory asset = Asset(Category.ERC20, token, id, amount);
 
-    // ERC1155
+        asset.category = Category.ERC721;
+        vm.expectRevert("MultiToken: Unsupported category");
+        harness.transferAssetFrom(asset, permit2, source, recipient);
 
-    function test_shouldCallSafeTransferFrom_whenERC1155() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, amount, "")
-        );
-        Permit2MultiToken.ERC1155(token, id, amount).transferAssetFrom({
-            permit2: permit2,
-            source: source,
-            dest: recipient
-        });
-    }
+        asset.category = Category.ERC1155;
+        vm.expectRevert("MultiToken: Unsupported category");
+        harness.transferAssetFrom(asset, permit2, source, recipient);
 
-    function test_shouldSetAmountToOne_whenERC1155WithZeroAmount() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, 1, "")
-        );
-        Permit2MultiToken.ERC1155(token, id, 0).transferAssetFrom({
-            permit2: permit2,
-            source: source,
-            dest: recipient
-        });
-    }
-
-    // CryptoKitties
-
-    function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsThis() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("transfer(address,uint256)", recipient, id)
-        );
-        Permit2MultiToken.CryptoKitties(token, id).transferAssetFrom({
-            permit2: permit2,
-            source: address(this),
-            dest: recipient
-        });
-    }
-
-    function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsNotThis() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
-        );
-        Permit2MultiToken.CryptoKitties(token, id).transferAssetFrom({
-            permit2: permit2,
-            source: source,
-            dest: recipient
-        });
+        asset.category = Category.CryptoKitties;
+        vm.expectRevert("MultiToken: Unsupported category");
+        harness.transferAssetFrom(asset, permit2, source, recipient);
     }
 
 }
 
 
 /*----------------------------------------------------------*|
-|*  # SAFE TRANSFER ASSET FROM                              *|
+|*  # PERMIT TRANSFER ASSET FROM                            *|
 |*----------------------------------------------------------*/
 
-contract Permit2MultiToken_SafeTransferAssetFrom_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
+contract Permit2MultiToken_PermitTransferAssetFrom_Test is Permit2MultiTokenTest {
+
+    IPermit2Like.PermitTransferFrom permit;
+    bytes signature;
 
     function setUp() external {
         vm.mockCall(
@@ -275,6 +229,13 @@ contract Permit2MultiToken_SafeTransferAssetFrom_Test is Permit2MultiTokenTest {
             abi.encodeWithSignature("transferFrom(address,address,uint160,address)"),
             abi.encode("")
         );
+
+        permit = IPermit2Like.PermitTransferFrom({
+            permitted: IPermit2Like.TokenPermissions(token, amount),
+            nonce: 0,
+            deadline: type(uint256).max
+        });
+        signature = "signature";
     }
 
 
@@ -283,7 +244,7 @@ contract Permit2MultiToken_SafeTransferAssetFrom_Test is Permit2MultiTokenTest {
     function test_shouldCallTransfer_whenERC20_whenSourceIsThis() external {
         vm.expectCall(token, abi.encodeWithSignature("transfer(address,uint256)", recipient, amount));
 
-        harness.safeTransferAssetFrom(token.ERC20(amount), permit2, address(harness), recipient);
+        harness.permitTransferAssetFrom(token.ERC20(amount), permit2, address(harness), recipient, permit, signature);
     }
 
     function test_shouldFail_whenERC20_whenSourceIsThis_whenTransferReturnsFalse() external {
@@ -294,100 +255,54 @@ contract Permit2MultiToken_SafeTransferAssetFrom_Test is Permit2MultiTokenTest {
         );
 
         vm.expectRevert("SafeERC20: ERC20 operation did not succeed");
-        harness.safeTransferAssetFrom(token.ERC20(amount), permit2, address(harness), recipient);
+        harness.permitTransferAssetFrom(token.ERC20(amount), permit2, address(harness), recipient, permit, signature);
     }
 
     function test_shouldFail_whenERC20_whenSourceIsThis_whenCallToNonContractAddress() external {
         address nonContractAddress = address(0xff22ff33);
 
         vm.expectRevert("Address: call to non-contract");
-        harness.safeTransferAssetFrom(nonContractAddress.ERC20(amount), permit2, address(harness), recipient);
+        harness.permitTransferAssetFrom(nonContractAddress.ERC20(amount), permit2, address(harness), recipient, permit, signature);
     }
 
-    function test_shouldCallTransferFrom_whenERC20_whenSourceIsNotThis() external {
+    function test_shouldCallPermitTransferFrom_whenERC20_whenSourceIsNotThis() external {
         vm.expectCall(
             permit2,
-            abi.encodeWithSignature("transferFrom(address,address,uint160,address)", source, recipient, amount, token)
+            abi.encodeWithSelector(
+                IPermit2Like.permitTransferFrom.selector,
+                permit, IPermit2Like.SignatureTransferDetails(recipient, amount), source, signature
+            )
         );
-
-        harness.safeTransferAssetFrom(token.ERC20(amount), permit2, source, recipient);
+        harness.permitTransferAssetFrom(token.ERC20(amount), permit2, source, recipient, permit, signature);
     }
 
     function test_shouldFail_whenERC20_whenSourceIsNotThis_whenTransferReverts() external {
         vm.mockCallRevert(
             permit2,
-            abi.encodeWithSignature("transferFrom(address,address,uint160,address)", source, recipient, amount, token),
+            abi.encodeWithSelector(IPermit2Like.permitTransferFrom.selector),
             abi.encode("revert data")
         );
 
         vm.expectRevert("revert data");
-        harness.safeTransferAssetFrom(token.ERC20(amount), permit2, source, recipient);
+        harness.permitTransferAssetFrom(token.ERC20(amount), permit2, source, recipient, permit, signature);
     }
 
     // ERC721
 
-    function test_shouldCallSafeTransferFrom_whenERC721() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("safeTransferFrom(address,address,uint256,bytes)", source, recipient, id, "")
-        );
-        Permit2MultiToken.ERC721(token, id).safeTransferAssetFrom({
-            permit2: permit2,
-            source: source,
-            dest: recipient
-        });
-    }
+    function test_shouldFail_forUnsupportedCategory() external {
+        Asset memory asset = Asset(Category.ERC20, token, id, amount);
 
-    // ERC1155
+        asset.category = Category.ERC721;
+        vm.expectRevert("MultiToken: Unsupported category");
+        harness.transferAssetFrom(asset, permit2, source, recipient);
 
-    function test_shouldCallSafeTransferFrom_whenERC1155() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, amount, "")
-        );
-        Permit2MultiToken.ERC1155(token, id, amount).safeTransferAssetFrom({
-            permit2: permit2,
-            source: source,
-            dest: recipient
-        });
-    }
+        asset.category = Category.ERC1155;
+        vm.expectRevert("MultiToken: Unsupported category");
+        harness.transferAssetFrom(asset, permit2, source, recipient);
 
-    function test_shouldSetAmountToOne_whenERC1155WithZeroAmount() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("safeTransferFrom(address,address,uint256,uint256,bytes)", source, recipient, id, 1, "")
-        );
-        Permit2MultiToken.ERC1155(token, id, 0).safeTransferAssetFrom({
-            permit2: permit2,
-            source: source,
-            dest: recipient
-        });
-    }
-
-    // CryptoKitties
-
-    function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsThis() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("transfer(address,uint256)", recipient, id)
-        );
-        Permit2MultiToken.CryptoKitties(token, id).safeTransferAssetFrom({
-            permit2: permit2,
-            source: address(this),
-            dest: recipient
-        });
-    }
-
-    function test_shouldCallTransferFrom_whenCryptoKitties_whenSourceIsNotThis() external {
-        vm.expectCall(
-            token,
-            abi.encodeWithSignature("transferFrom(address,address,uint256)", source, recipient, id)
-        );
-        Permit2MultiToken.CryptoKitties(token, id).safeTransferAssetFrom({
-            permit2: permit2,
-            source: source,
-            dest: recipient
-        });
+        asset.category = Category.CryptoKitties;
+        vm.expectRevert("MultiToken: Unsupported category");
+        harness.transferAssetFrom(asset, permit2, source, recipient);
     }
 
 }
@@ -398,7 +313,6 @@ contract Permit2MultiToken_SafeTransferAssetFrom_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_GetTransferAmount_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
 
     // ERC20
 
@@ -452,7 +366,6 @@ contract Permit2MultiToken_GetTransferAmount_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_BalanceOf_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
 
     function test_shouldReturnBalance_whenERC20() external {
         vm.mockCall(
@@ -558,7 +471,6 @@ contract Permit2MultiToken_BalanceOf_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_IsValidWithRegistry_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
 
     function test_shouldReturnTrue_whenCategoryAndFormatCheckReturnTrue() external {
         // category check return false
@@ -586,7 +498,6 @@ contract Permit2MultiToken_IsValidWithRegistry_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_IsValidWithoutRegistry_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
 
     function test_shouldReturnTrue_whenCategoryViaERC165AndFormatCheckReturnTrue() external {
         // category check return false
@@ -614,7 +525,6 @@ contract Permit2MultiToken_IsValidWithoutRegistry_Test is Permit2MultiTokenTest 
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_CheckCategory_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
 
     function testFuzz_shouldReturnTrue_whenCategoryRegistered(uint8 _category) external {
         _category = _category % 4;
@@ -664,7 +574,6 @@ contract Permit2MultiToken_CheckCategory_Test is Permit2MultiTokenTest {
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_CheckCategoryViaERC165_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
 
     function test_shouldReturnFalse_whenZeroAddress() external {
         assertFalse(Permit2MultiToken.ERC20(address(0), amount).isValid());
@@ -749,7 +658,6 @@ contract Permit2MultiToken_CheckCategoryViaERC165_Test is Permit2MultiTokenTest 
 |*----------------------------------------------------------*/
 
 contract Permit2MultiToken_CheckFormat_Test is Permit2MultiTokenTest {
-    using Permit2MultiToken for Asset;
 
     function testFuzz_shouldReturnFalse_whenERC20WithNonZeroId(uint256 _id, uint256 _amount) external {
         vm.assume(_id > 0);
